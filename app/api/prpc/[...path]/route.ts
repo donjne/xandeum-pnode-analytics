@@ -32,14 +32,11 @@ const TIMEOUT = parseInt(process.env.PRPC_TIMEOUT || '30000');
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: { path: string[] } }
 ) {
   try {
-    // Await params in Next.js 15
-    const { path } = await params;
-    
     // Extract method from path (e.g., ['get-pods'] or ['get-pods-with-stats'])
-    const method = path.join('-');
+    const method = params.path.join('-');
     
     if (!method) {
       return NextResponse.json(
@@ -127,16 +124,14 @@ export async function POST(
 // GET for method info
 export async function GET(
   request: NextRequest,
-  { params }: { params: Promise<{ path: string[] }> }
+  { params }: { params: { path: string[] } }
 ) {
-  // Await params in Next.js 15
-  const { path } = await params;
-  const method = path.join('-');
+  const method = params.path.join('-');
   
   return NextResponse.json({
     method,
     endpoint: DEFAULT_ENDPOINT,
-    usage: `POST /api/prpc/${path.join('/')}`,
+    usage: `POST /api/prpc/${params.path.join('/')}`,
     body: { params: {} },
   });
 }
