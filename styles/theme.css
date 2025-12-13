@@ -1,0 +1,353 @@
+/* Xandeum pNode Analytics - Custom Theme Styles */
+
+:root {
+  /* Light Mode Colors */
+  --background: 0 0% 100%; /* #ffffff */
+  --foreground: 225 60% 15%; /* #09103a */
+  
+  --card: 210 17% 98%; /* #f8f9fa */
+  --card-foreground: 225 60% 15%;
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: 225 60% 15%;
+  
+  --primary: 197 66% 43%; /* #2596be */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 173 89% 34%; /* #0f9c84 */
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: 210 17% 95%;
+  --muted-foreground: 215 16% 47%;
+  
+  --accent: 173 89% 34%; /* #0f9c84 */
+  --accent-foreground: 0 0% 100%;
+  
+  --destructive: 318 46% 31%; /* #7c2b6d */
+  --destructive-foreground: 0 0% 100%;
+  
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --ring: 197 66% 43%;
+  
+  --radius: 0.5rem;
+  
+  /* Custom Xandeum Colors */
+  --xandeum-blue: 197 66% 43%; /* #2596be */
+  --xandeum-teal: 173 89% 34%; /* #0f9c84 */
+  --xandeum-purple: 318 46% 31%; /* #7c2b6d */
+  --xandeum-orange: 25 77% 45%; /* #c6731d */
+  --xandeum-navy: 225 60% 15%; /* #09103a */
+  
+  /* Status Colors */
+  --status-online: 173 89% 34%; /* #0f9c84 */
+  --status-offline: 318 46% 31%; /* #7c2b6d */
+  --status-warning: 30 78% 46%; /* #cc761e */
+  --status-success: 173 89% 34%;
+  --status-error: 318 46% 31%;
+  
+  /* Chart Colors */
+  --chart-1: 197 66% 43%;
+  --chart-2: 173 89% 34%;
+  --chart-3: 318 46% 31%;
+  --chart-4: 25 77% 45%;
+  --chart-5: 225 60% 15%;
+}
+
+.dark {
+  /* Dark Mode Colors */
+  --background: 225 60% 15%; /* #09103a */
+  --foreground: 0 0% 100%;
+  
+  --card: 173 89% 34% / 0.1; /* #0f9c84 with 10% opacity on navy */
+  --card-foreground: 0 0% 100%;
+  
+  --popover: 225 60% 18%;
+  --popover-foreground: 0 0% 100%;
+  
+  --primary: 173 89% 35%; /* #0f9982 */
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: 197 66% 43%; /* #2596be */
+  --secondary-foreground: 0 0% 100%;
+  
+  --muted: 225 60% 25%;
+  --muted-foreground: 215 15% 73%; /* #b8bcc8 */
+  
+  --accent: 173 89% 35%; /* #0f9982 */
+  --accent-foreground: 0 0% 100%;
+  
+  --destructive: 321 48% 35%; /* #872f77 */
+  --destructive-foreground: 0 0% 100%;
+  
+  --border: 225 60% 25%;
+  --input: 225 60% 25%;
+  --ring: 173 89% 35%;
+  
+  /* Custom Xandeum Colors (Dark variants) */
+  --xandeum-blue: 197 66% 43%; /* #2596be */
+  --xandeum-teal: 173 89% 35%; /* #0f9982 */
+  --xandeum-purple: 321 48% 35%; /* #872f77 */
+  --xandeum-orange: 30 78% 46%; /* #cc761e */
+  --xandeum-navy: 225 60% 15%; /* #09103a */
+  
+  /* Status Colors (Dark mode) */
+  --status-online: 173 89% 35%;
+  --status-offline: 321 48% 35%;
+  --status-warning: 30 78% 46%;
+  --status-success: 173 89% 35%;
+  --status-error: 321 48% 35%;
+  
+  /* Chart Colors (Dark mode) */
+  --chart-1: 197 66% 43%;
+  --chart-2: 173 89% 35%;
+  --chart-3: 321 48% 35%;
+  --chart-4: 30 78% 46%;
+  --chart-5: 0 0% 90%;
+}
+
+/* Base Styles */
+* {
+  border-color: hsl(var(--border));
+}
+
+body {
+  background-color: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted));
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Animations */
+@keyframes pulse-online {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-bottom {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Utility Classes */
+.animate-pulse-online {
+  animation: pulse-online 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-slide-in-bottom {
+  animation: slide-in-bottom 0.3s ease-out;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+/* Status Indicator */
+.status-indicator {
+  position: relative;
+}
+
+.status-indicator::before {
+  content: '';
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  animation: pulse-online 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.status-online {
+  background-color: hsl(var(--status-online));
+}
+
+.status-offline {
+  background-color: hsl(var(--status-offline));
+}
+
+.status-warning {
+  background-color: hsl(var(--status-warning));
+}
+
+/* Health Score Colors */
+.health-excellent {
+  color: hsl(var(--status-success));
+}
+
+.health-good {
+  color: hsl(var(--xandeum-blue));
+}
+
+.health-fair {
+  color: hsl(var(--status-warning));
+}
+
+.health-poor {
+  color: hsl(var(--status-error));
+}
+
+/* Gradient Backgrounds */
+.gradient-mesh {
+  background: 
+    radial-gradient(at 0% 0%, hsl(var(--xandeum-blue) / 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 0%, hsl(var(--xandeum-teal) / 0.1) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, hsl(var(--xandeum-purple) / 0.1) 0px, transparent 50%),
+    radial-gradient(at 0% 100%, hsl(var(--xandeum-orange) / 0.1) 0px, transparent 50%);
+}
+
+/* Card Hover Effects */
+.card-hover {
+  transition: all 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px hsl(var(--foreground) / 0.1);
+}
+
+/* Glass Effect */
+.glass {
+  background: hsl(var(--card) / 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* Glow Effect */
+.glow {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.3);
+}
+
+.glow-teal {
+  box-shadow: 0 0 20px hsl(var(--xandeum-teal) / 0.3);
+}
+
+/* Network Graph Styles */
+.network-node {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.network-node:hover {
+  transform: scale(1.2);
+}
+
+/* Progress Bar */
+.progress-bar {
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: hsl(var(--muted));
+}
+
+.progress-bar-fill {
+  height: 100%;
+  transition: width 0.3s ease;
+  background: linear-gradient(
+    90deg,
+    hsl(var(--xandeum-teal)),
+    hsl(var(--xandeum-blue))
+  );
+}
+
+/* Chart Container */
+.chart-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Responsive Text */
+@media (max-width: 640px) {
+  .text-responsive {
+    font-size: 0.875rem;
+  }
+}
+
+/* Print Styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  body {
+    background: white;
+    color: black;
+  }
+}
+
+/* Focus Visible */
+:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Selection */
+::selection {
+  background: hsl(var(--primary) / 0.3);
+  color: hsl(var(--foreground));
+}
