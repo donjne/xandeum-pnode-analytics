@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from 'react';
 import { Activity, AlertCircle, CheckCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
