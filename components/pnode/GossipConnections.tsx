@@ -1,4 +1,5 @@
-import * as React from 'react';
+'use client';
+
 import { Network, Link as LinkIcon, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

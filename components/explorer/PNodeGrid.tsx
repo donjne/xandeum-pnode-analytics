@@ -1,4 +1,5 @@
-import * as React from 'react';
+'use client';
+
 import { Grid3x3, List } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { PNode } from '@/lib/types';

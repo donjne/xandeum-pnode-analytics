@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from 'react';
 import { Server, Activity, HardDrive, TrendingUp, LucideIcon } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

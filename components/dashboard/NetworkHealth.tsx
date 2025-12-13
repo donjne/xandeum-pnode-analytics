@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from 'react';
 import { AlertTriangle, CheckCircle2, XCircle, Activity } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

@@ -1,4 +1,5 @@
-import * as React from 'react';
+'use client';
+
 import Link from 'next/link';
 import { Server, HardDrive, Activity, ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';

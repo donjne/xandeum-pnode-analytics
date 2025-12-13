@@ -1,9 +1,11 @@
+'use client';
+
 import * as React from 'react';
 import { Trophy, TrendingUp, Award } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNetworkStore } from '@/stores/networkStore';
-import { calculateHealthScore, formatPubkey, formatBytes } from '@/lib/utils';
+import { calculateHealthScore, formatBytes } from '@/lib/utils';
 import { TruncatedText } from '@/components/shared/TruncatedText';
 import { Skeleton } from '@/components/ui/skeleton';
 
