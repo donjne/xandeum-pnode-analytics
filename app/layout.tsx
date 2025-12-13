@@ -6,7 +6,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Navbar } from '@/components/layout/Navbar';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Footer } from '@/components/layout/Footer';
-import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+import { ClientErrorBoundary } from '@/components/layout/ClientErrorBoundary';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -36,7 +36,7 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <ErrorBoundary>
+          <ClientErrorBoundary>
             <div className="relative min-h-screen flex flex-col">
               {/* Fixed Navbar */}
               <Navbar />
@@ -59,7 +59,7 @@ export default function RootLayout({
 
             {/* Toast Notifications */}
             <Toaster />
-          </ErrorBoundary>
+          </ClientErrorBoundary>
         </ThemeProvider>
       </body>
     </html>
