@@ -2,12 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 /**
  * Dynamic pRPC Proxy Endpoint
- * 
- * This allows calling pRPC methods via URL paths:
- * POST /api/prpc/get-pods -> calls 'get-pods' method
- * POST /api/prpc/get-pods-with-stats -> calls 'get-pods-with-stats' method
- * 
- * This is more RESTful than the generic /api/prpc endpoint.
+ * Compatible with Next.js 14 and 15
  */
 
 interface RPCRequest {
@@ -32,11 +27,15 @@ const TIMEOUT = parseInt(process.env.PRPC_TIMEOUT || '30000');
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  context: { params: { path: string[] } | Promise<{ path: string[] }> }
 ) {
   try {
-    // Extract method from path (e.g., ['get-pods'] or ['get-pods-with-stats'])
-    const method = params.path.join('-');
+    // Handle both Next.js 14 (sync) and Next.js 15 (async) params
+    const resolvedParams = context.params instanceof Promise 
+      ? await context.params 
+      : context.params;
+    
+    const method = resolvedParams.path.join('-');
     
     if (!method) {
       return NextResponse.json(
@@ -45,19 +44,16 @@ export async function POST(
       );
     }
 
-    // Get request body as params
     let rpcParams = {};
     try {
       const body = await request.json();
       rpcParams = body.params || body || {};
     } catch {
-      // No body is fine for methods without params
+      // No body is fine
     }
 
-    // Get optional endpoint override from query params
     const endpoint = request.nextUrl.searchParams.get('endpoint') || DEFAULT_ENDPOINT;
 
-    // Create JSON-RPC request
     const rpcRequest: RPCRequest = {
       jsonrpc: '2.0',
       method,
@@ -65,7 +61,6 @@ export async function POST(
       id: Date.now(),
     };
 
-    // Make request with timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), TIMEOUT);
 
@@ -87,7 +82,6 @@ export async function POST(
 
       const data: RPCResponse = await response.json();
 
-      // Check for JSON-RPC error
       if (data.error) {
         return NextResponse.json(
           { 
@@ -121,17 +115,21 @@ export async function POST(
   }
 }
 
-// GET for method info
 export async function GET(
   request: NextRequest,
-  { params }: { params: { path: string[] } }
+  context: { params: { path: string[] } | Promise<{ path: string[] }> }
 ) {
-  const method = params.path.join('-');
+  // Handle both Next.js 14 (sync) and Next.js 15 (async) params
+  const resolvedParams = context.params instanceof Promise 
+    ? await context.params 
+    : context.params;
+  
+  const method = resolvedParams.path.join('-');
   
   return NextResponse.json({
     method,
     endpoint: DEFAULT_ENDPOINT,
-    usage: `POST /api/prpc/${params.path.join('/')}`,
+    usage: `POST /api/prpc/${resolvedParams.path.join('/')}`,
     body: { params: {} },
   });
 }
