@@ -1,4 +1,5 @@
-import { Metadata } from 'next';
+'use client';
+
 import { 
   QuickStats, 
   NetworkHealth, 
@@ -7,12 +8,8 @@ import {
   NetworkMap 
 } from '@/components/dashboard';
 
-export const metadata: Metadata = {
-  title: 'Dashboard | Xandeum pNode Analytics',
-  description: 'Real-time overview of the Xandeum pNode network',
-};
 
-export default function HomePage() {
+export default function Home() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Page Header */}

@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { Metadata } from 'next';
 import { AlertList, AlertForm, NotificationChannels } from '@/components/alerts';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
