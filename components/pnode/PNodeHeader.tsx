@@ -1,3 +1,5 @@
+'use client';
+
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, ExternalLink, Copy, Check } from 'lucide-react';

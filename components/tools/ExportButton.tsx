@@ -1,4 +1,5 @@
-import * as React from 'react';
+'use client';
+
 import { Download, FileJson, FileSpreadsheet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {

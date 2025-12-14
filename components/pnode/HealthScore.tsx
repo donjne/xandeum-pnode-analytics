@@ -1,4 +1,5 @@
-import * as React from 'react';
+'use client';
+
 import { Activity, AlertTriangle, CheckCircle2, XCircle } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';

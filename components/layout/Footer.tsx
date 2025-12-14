@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Github, Twitter, MessageCircle } from 'lucide-react';
+import { Github, XIcon, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
@@ -25,7 +25,7 @@ const footerLinks = {
 
 const socialLinks = [
   { name: 'GitHub', icon: Github, href: 'https://github.com/Xandeum' },
-  { name: 'Twitter', icon: Twitter, href: 'https://twitter.com/XandeumLabs' },
+  { name: 'Twitter', icon: XIcon, href: 'https://twitter.com/XandeumLabs' },
   { name: 'Discord', icon: MessageCircle, href: 'https://discord.gg/uqRSmmM5m' },
 ];
 

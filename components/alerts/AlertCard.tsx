@@ -1,4 +1,5 @@
-import * as React from 'react';
+'use client';
+
 import { Bell, BellOff, Trash2, Edit, MoreVertical } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
