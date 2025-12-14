@@ -1,6 +1,5 @@
 'use client';
 
-import { Metadata } from 'next';
 import { 
   NetworkGrowthChart,
   VersionDistribution,
@@ -10,10 +9,6 @@ import {
 } from '@/components/analytics';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-export const metadata: Metadata = {
-  title: 'Analytics | Xandeum pNode Analytics',
-  description: 'Comprehensive network analytics and insights',
-};
 
 export default function AnalyticsPage() {
   return (

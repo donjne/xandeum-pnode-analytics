@@ -1,12 +1,8 @@
-import { Metadata } from 'next';
+'use client';
+
 import { RewardCalculator } from '@/components/tools/RewardCalculator';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator, Info } from 'lucide-react';
-
-export const metadata: Metadata = {
-  title: 'Reward Calculator | Xandeum pNode Analytics',
-  description: 'Calculate potential XAND rewards for pNode operators',
-};
 
 export default function CalculatorPage() {
   return (
