@@ -40,6 +40,7 @@
     "recharts": "^2.15.4",
     "tailwind-merge": "^2.6.0",
     "tailwindcss-animate": "^1.0.7",
+    "xandeum-prpc": "^0.1.6",
     "zustand": "^4.5.7"
   },
   "devDependencies": {

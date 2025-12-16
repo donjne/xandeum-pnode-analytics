@@ -1,187 +1,283 @@
 'use client';
 
 import * as React from 'react';
-import { Activity, Server, AlertCircle, CheckCircle, TrendingUp } from 'lucide-react';
+import { Activity, CheckCircle2, AlertCircle, TrendingUp, HardDrive, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TimeAgo } from '@/components/shared/TimeAgo';
-import { formatPubkey } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useNetworkStore } from '@/stores/networkStore';
+import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
 
 interface ActivityEvent {
   id: string;
-  type: 'node_online' | 'node_offline' | 'storage_threshold' | 'performance_alert' | 'version_update';
-  pubkey: string;
+  type: 'node_online' | 'node_offline' | 'storage_update' | 'version_update';
   message: string;
   timestamp: number;
-  severity: 'info' | 'warning' | 'error' | 'success';
+  pubkey?: string;
+  severity: 'info' | 'success' | 'warning' | 'error';
 }
 
-// Mock activity feed - in production, this would come from WebSocket or polling
-const generateMockActivities = (): ActivityEvent[] => {
-  const now = Math.floor(Date.now() / 1000);
-  const mockPubkeys = [
-    '7qbRQPVBfxXjJpEa1rnz8JgmKBaUvCpVZPEqoKNh8uHr',
-    '2asTHq4vVGazKrmEa3YTXKuYiNZBdv1cQoLc1Tr2kvaw',
-    'HhuygLTeS6grue95pKKzak2UPuQMXepWbvQv2ToQfbZN',
-  ];
-
-  return [
-    {
-      id: '1',
-      type: 'node_online',
-      pubkey: mockPubkeys[0],
-      message: 'Node came online',
-      timestamp: now - 120,
-      severity: 'success',
-    },
-    {
-      id: '2',
-      type: 'storage_threshold',
-      pubkey: mockPubkeys[1],
-      message: 'Storage utilization reached 80%',
-      timestamp: now - 300,
-      severity: 'warning',
-    },
-    {
-      id: '3',
-      type: 'version_update',
-      pubkey: mockPubkeys[2],
-      message: 'Updated to v0.7.0',
-      timestamp: now - 450,
-      severity: 'info',
-    },
-    {
-      id: '4',
-      type: 'node_offline',
-      pubkey: mockPubkeys[0],
-      message: 'Node went offline',
-      timestamp: now - 600,
-      severity: 'error',
-    },
-    {
-      id: '5',
-      type: 'performance_alert',
-      pubkey: mockPubkeys[1],
-      message: 'High response time detected',
-      timestamp: now - 900,
-      severity: 'warning',
-    },
-  ];
-};
-
-const activityIcons = {
-  node_online: CheckCircle,
-  node_offline: AlertCircle,
-  storage_threshold: TrendingUp,
-  performance_alert: Activity,
-  version_update: Server,
-};
-
-const severityColors = {
-  info: 'text-blue-500',
-  warning: 'text-yellow-500',
-  error: 'text-red-500',
-  success: 'text-green-500',
-};
-
 export function LiveActivityFeed() {
+  const { nodes, isLoading } = useNetworkStore();
   const [activities, setActivities] = React.useState<ActivityEvent[]>([]);
-  const [loading, setLoading] = React.useState(true);
+  const prevNodesRef = React.useRef<typeof nodes>([]);
 
+  // Generate real activity events by comparing node states
   React.useEffect(() => {
-    // Simulate initial load
-    setTimeout(() => {
-      setActivities(generateMockActivities());
-      setLoading(false);
-    }, 1000);
+    if (isLoading || nodes.length === 0) return;
 
-    // Simulate new activities every 30 seconds
-    const interval = setInterval(() => {
-      const newActivity: ActivityEvent = {
-        id: Date.now().toString(),
-        type: ['node_online', 'storage_threshold', 'version_update'][
-          Math.floor(Math.random() * 3)
-        ] as ActivityEvent['type'],
-        pubkey: '7qbRQPVBfxXjJpEa1rnz8JgmKBaUvCpVZPEqoKNh8uHr',
-        message: 'New activity detected',
-        timestamp: Math.floor(Date.now() / 1000),
-        severity: ['info', 'warning', 'success'][Math.floor(Math.random() * 3)] as ActivityEvent['severity'],
-      };
-      setActivities((prev) => [newActivity, ...prev].slice(0, 10));
-    }, 30000);
+    const prevNodes = prevNodesRef.current;
+    const newActivities: ActivityEvent[] = [];
 
-    return () => clearInterval(interval);
-  }, []);
+    // First load - show initial state
+    if (prevNodes.length === 0 && nodes.length > 0) {
+      const onlineNodes = nodes.filter(n => n.status === 'online');
+      newActivities.push({
+        id: `init-${Date.now()}`,
+        type: 'node_online',
+        message: `Network initialized with ${onlineNodes.length} online nodes`,
+        timestamp: Date.now(),
+        severity: 'success',
+      });
+    } else {
+      // Detect changes
+      nodes.forEach(node => {
+        const prevNode = prevNodes.find(n => n.pubkey === node.pubkey);
+        
+        if (!prevNode) {
+          // New node discovered
+          newActivities.push({
+            id: `new-${node.pubkey}-${Date.now()}`,
+            type: 'node_online',
+            message: `New node discovered`,
+            timestamp: Date.now(),
+            pubkey: node.pubkey,
+            severity: 'success',
+          });
+        } else {
+          // Status change
+          if (prevNode.status !== node.status) {
+            newActivities.push({
+              id: `status-${node.pubkey}-${Date.now()}`,
+              type: node.status === 'online' ? 'node_online' : 'node_offline',
+              message: `Node went ${node.status}`,
+              timestamp: Date.now(),
+              pubkey: node.pubkey,
+              severity: node.status === 'online' ? 'success' : 'warning',
+            });
+          }
+          
+          // Storage change (significant)
+          const storageDiff = Math.abs(node.storage_usage_percent - prevNode.storage_usage_percent);
+          if (storageDiff > 5) {
+            newActivities.push({
+              id: `storage-${node.pubkey}-${Date.now()}`,
+              type: 'storage_update',
+              message: `Storage usage ${node.storage_usage_percent > prevNode.storage_usage_percent ? 'increased' : 'decreased'} to ${node.storage_usage_percent.toFixed(1)}%`,
+              timestamp: Date.now(),
+              pubkey: node.pubkey,
+              severity: node.storage_usage_percent > 85 ? 'warning' : 'info',
+            });
+          }
+          
+          // Version update
+          if (prevNode.version !== node.version) {
+            newActivities.push({
+              id: `version-${node.pubkey}-${Date.now()}`,
+              type: 'version_update',
+              message: `Updated to v${node.version}`,
+              timestamp: Date.now(),
+              pubkey: node.pubkey,
+              severity: 'info',
+            });
+          }
+        }
+      });
 
-  if (loading) {
+      // Detect removed nodes
+      prevNodes.forEach(prevNode => {
+        const exists = nodes.find(n => n.pubkey === prevNode.pubkey);
+        if (!exists) {
+          newActivities.push({
+            id: `removed-${prevNode.pubkey}-${Date.now()}`,
+            type: 'node_offline',
+            message: `Node left the network`,
+            timestamp: Date.now(),
+            pubkey: prevNode.pubkey,
+            severity: 'error',
+          });
+        }
+      });
+    }
+
+    if (newActivities.length > 0) {
+      setActivities(prev => [...newActivities, ...prev].slice(0, 50)); // Keep last 50
+    }
+
+    prevNodesRef.current = nodes;
+  }, [nodes, isLoading]);
+
+  const getActivityIcon = (type: ActivityEvent['type']) => {
+    switch (type) {
+      case 'node_online':
+        return CheckCircle2;
+      case 'node_offline':
+        return AlertCircle;
+      case 'storage_update':
+        return HardDrive;
+      case 'version_update':
+        return TrendingUp;
+      default:
+        return Activity;
+    }
+  };
+
+  const getSeverityConfig = (severity: ActivityEvent['severity']) => {
+    switch (severity) {
+      case 'success':
+        return {
+          color: 'text-emerald-400',
+          bgColor: 'bg-emerald-500/20',
+          borderColor: 'border-emerald-500/30',
+        };
+      case 'warning':
+        return {
+          color: 'text-orange-400',
+          bgColor: 'bg-orange-500/20',
+          borderColor: 'border-orange-500/30',
+        };
+      case 'error':
+        return {
+          color: 'text-red-400',
+          bgColor: 'bg-red-500/20',
+          borderColor: 'border-red-500/30',
+        };
+      default:
+        return {
+          color: 'text-blue-400',
+          bgColor: 'bg-blue-500/20',
+          borderColor: 'border-blue-500/30',
+        };
+    }
+  };
+
+  if (isLoading) {
     return (
-      <Card>
+      <Card className="relative overflow-hidden border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-cyan-500/5">
+        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
         <CardHeader>
-          <CardTitle>Live Activity</CardTitle>
-          <CardDescription>Real-time network events and updates</CardDescription>
+          <CardTitle>Live Activity Feed</CardTitle>
+          <CardDescription>Loading network events...</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-16 w-full" />
-          ))}
+        <CardContent>
+          <div className="space-y-3">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="h-16 animate-pulse bg-white/5 rounded-lg" />
+            ))}
+          </div>
         </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Activity className="h-5 w-5" />
-          Live Activity
-          <Badge variant="outline" className="ml-auto">
-            <span className="mr-1 h-2 w-2 animate-pulse rounded-full bg-green-500" />
+    <Card className="relative overflow-hidden border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/20">
+      {/* Shimmer */}
+      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
+      
+      <CardHeader className="relative">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5 text-cyan-400 animate-pulse" />
+              Live Activity Feed
+            </CardTitle>
+            <CardDescription>Real-time network events</CardDescription>
+          </div>
+          <Badge variant="outline" className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30 animate-pulse">
+            <span className="relative flex h-2 w-2 mr-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
+            </span>
             Live
           </Badge>
-        </CardTitle>
-        <CardDescription>Real-time network events and updates</CardDescription>
+        </div>
       </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[400px] pr-4">
-          <div className="space-y-3">
-            {activities.map((activity) => {
-              const Icon = activityIcons[activity.type];
-              return (
-                <div
-                  key={activity.id}
-                  className="flex items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-muted"
-                >
-                  <Icon className={`mt-0.5 h-5 w-5 shrink-0 ${severityColors[activity.severity]}`} />
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium">{activity.message}</p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span className="font-mono">{formatPubkey(activity.pubkey, 4)}</span>
-                      <span>•</span>
-                      <TimeAgo timestamp={activity.timestamp} showTooltip={false} />
+
+      <CardContent className="relative">
+        {activities.length === 0 ? (
+          <div className="text-center py-8 text-white/60">
+            <Clock className="h-12 w-12 mx-auto mb-3 opacity-30 animate-pulse" />
+            <p>Waiting for network activity...</p>
+            <p className="text-xs mt-2">Events will appear as nodes join or change status</p>
+          </div>
+        ) : (
+          <ScrollArea className="h-[400px] pr-4">
+            <div className="space-y-3">
+              {activities.map((activity) => {
+                const Icon = getActivityIcon(activity.type);
+                const config = getSeverityConfig(activity.severity);
+                
+                return (
+                  <div
+                    key={activity.id}
+                    className={cn(
+                      "group relative overflow-hidden rounded-lg border p-3 transition-all duration-300",
+                      "backdrop-blur-sm hover:scale-[1.02]",
+                      config.bgColor,
+                      config.borderColor
+                    )}
+                  >
+                    {/* Hover shimmer */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_ease-in-out]" />
+                    
+                    <div className="relative flex items-start gap-3">
+                      <div className={cn(
+                        "rounded-full p-2 mt-0.5",
+                        config.bgColor
+                      )}>
+                        <Icon className={cn("h-4 w-4", config.color)} />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-medium text-white/90">
+                            {activity.message}
+                          </span>
+                        </div>
+                        
+                        <div className="flex items-center gap-2 text-xs text-white/50">
+                          {activity.pubkey && (
+                            <>
+                              <span className="font-mono truncate max-w-[150px]">
+                                {activity.pubkey.slice(0, 8)}...{activity.pubkey.slice(-4)}
+                              </span>
+                              <span>•</span>
+                            </>
+                          )}
+                          <span>{formatDistanceToNow(activity.timestamp, { addSuffix: true })}</span>
+                        </div>
+                      </div>
+
+                      <Badge 
+                        variant="outline"
+                        className={cn(
+                          "text-xs",
+                          config.bgColor,
+                          config.borderColor,
+                          config.color
+                        )}
+                      >
+                        {activity.severity}
+                      </Badge>
                     </div>
                   </div>
-                  <Badge
-                    variant="outline"
-                    className={
-                      activity.severity === 'error'
-                        ? 'border-red-500/20 bg-red-500/10 text-red-500'
-                        : activity.severity === 'warning'
-                          ? 'border-yellow-500/20 bg-yellow-500/10 text-yellow-500'
-                          : activity.severity === 'success'
-                            ? 'border-green-500/20 bg-green-500/10 text-green-500'
-                            : 'border-blue-500/20 bg-blue-500/10 text-blue-500'
-                    }
-                  >
-                    {activity.severity}
-                  </Badge>
-                </div>
-              );
-            })}
-          </div>
-        </ScrollArea>
+                );
+              })}
+            </div>
+          </ScrollArea>
+        )}
       </CardContent>
     </Card>
   );

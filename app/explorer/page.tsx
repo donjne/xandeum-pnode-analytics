@@ -1,8 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { Metadata } from 'next';
 import { SearchBar, FilterPanel, PNodeGrid, PNodeTable, Pagination, FilterState } from '@/components/explorer';
-import { APIStatus } from '@/components/shared/APIStatus';
 import { Button } from '@/components/ui/button';
 import { LayoutGrid, Table as TableIcon, Settings } from 'lucide-react';
 import { useNetwork } from '@/hooks/use-network';
@@ -164,7 +164,14 @@ export default function ExplorerPage() {
               <DialogHeader>
                 <DialogTitle>Data Source Settings</DialogTitle>
               </DialogHeader>
-              <APIStatus />
+              <div className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Data is fetched directly from pNode network using xandeum-prpc SDK.
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Connected to: {nodes.length > 0 ? nodes[0].address : 'No nodes found'}
+                </p>
+              </div>
             </DialogContent>
           </Dialog>
         </div>

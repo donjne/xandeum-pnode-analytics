@@ -1,14 +1,12 @@
 import { create } from 'zustand';
 import { PNode } from '@/lib/types/pnode';
-import { prpcClient, PRPCError } from '@/lib/api/prpc-client';
-import { generateMockNodes } from '@/lib/mock-data';
+import { prpcClient } from '@/lib/api/prpc-client';
 
 interface NetworkState {
   nodes: PNode[];
   isLoading: boolean;
   error: string | null;
   lastUpdated: number;
-  useMockData: boolean; // Toggle between mock and real data
   
   // Computed values
   totalCount: number;
@@ -20,7 +18,6 @@ interface NetworkState {
   fetchNodes: () => Promise<void>;
   refreshNodes: () => Promise<void>;
   getNodeByPubkey: (pubkey: string) => PNode | undefined;
-  toggleMockData: (useMock: boolean) => void;
   clearError: () => void;
 }
 
@@ -29,7 +26,6 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
   isLoading: false,
   error: null,
   lastUpdated: 0,
-  useMockData: false, // Start with mock data, set to false for real API
   
   // Computed values
   totalCount: 0,
@@ -41,80 +37,89 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
     set({ isLoading: true, error: null });
     
     try {
-      let nodes: PNode[];
+      console.log('🔄 Fetching nodes from xandeum-prpc SDK...');
       
-      if (get().useMockData) {
-        // Mock data (for development/demo)
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        nodes = generateMockNodes(100);
-      } else {
-        // Real API call
-        try {
-          console.log('Fetching nodes from pRPC API...');
-          nodes = await prpcClient.getPodsWithStats();
-          
-          // Fallback to basic getPods if getPodsWithStats fails
-          if (!nodes || nodes.length === 0) {
-            console.log('No stats available, trying basic getPods...');
-            nodes = await prpcClient.getPods();
-          }
-          
-          console.log(`Successfully fetched ${nodes.length} nodes`);
-        } catch (apiError) {
-          console.error('API call failed:', apiError);
-          
-          // Fallback to mock data if API fails
-          nodes = generateMockNodes(100);
-          
-          // Set error but don't throw - allow UI to render with mock data
-          if (apiError instanceof PRPCError) {
-            set({ 
-              error: `API Error: ${apiError.message} (code: ${apiError.code}). Using mock data.`,
-            });
-          } else {
-            set({ 
-              error: 'Failed to connect to pRPC endpoint. Using mock data.',
-            });
-          }
-        }
+      // Use SDK to fetch pods with stats
+      const pods = await prpcClient.getPodsWithStats();
+      
+      if (!pods || pods.length === 0) {
+        console.warn('⚠️  No pods returned from API');
+        set({ 
+          nodes: [],
+          totalCount: 0,
+          onlineCount: 0,
+          totalStorage: 0,
+          usedStorage: 0,
+          isLoading: false,
+          lastUpdated: Date.now(),
+          error: 'No pNodes found in network'
+        });
+        return;
       }
-      
-      // Calculate computed values
-      const onlineCount = nodes.filter((n) => n.status === 'online').length;
+
+      console.log(`✅ Received ${pods.length} pods from SDK`);
+
+      // Transform SDK response to our PNode format (SDK uses snake_case)
+      const nodes: PNode[] = pods.map((pod: any) => ({
+        pubkey: pod.pubkey || 'unknown',
+        address: pod.address || 'unknown',
+        rpc_port: pod.rpc_port || 6000,
+        is_public: pod.is_public ?? true,
+        last_seen_timestamp: pod.last_seen_timestamp || 0,
+        version: pod.version || '0.0.0',
+        storage_committed: pod.storage_committed || 0,
+        storage_used: pod.storage_used || 0,
+        storage_usage_percent: pod.storage_usage_percent || 0,
+        uptime: pod.uptime || 0,
+        // Calculate online status (online if seen in last 5 minutes)
+        status: (pod.last_seen_timestamp && (Date.now() / 1000 - pod.last_seen_timestamp) < 300) 
+          ? 'online' as const
+          : 'offline' as const,
+      }));
+
+      // Calculate aggregated stats
+      const totalCount = nodes.length;
+      const onlineCount = nodes.filter(n => n.status === 'online').length;
       const totalStorage = nodes.reduce((sum, n) => sum + n.storage_committed, 0);
       const usedStorage = nodes.reduce((sum, n) => sum + n.storage_used, 0);
-      
+
+      console.log(`📊 Stats: ${onlineCount}/${totalCount} online, ${(totalStorage / 1e9).toFixed(2)} GB total storage`);
+
       set({
         nodes,
-        totalCount: nodes.length,
+        totalCount,
         onlineCount,
         totalStorage,
         usedStorage,
         isLoading: false,
         lastUpdated: Date.now(),
+        error: null,
       });
     } catch (error: any) {
-      console.error('Unexpected error in fetchNodes:', error);
+      console.error('❌ Failed to fetch nodes from SDK:', error);
+      
+      // NO MOCK DATA FALLBACK - just show error
       set({
-        error: error.message || 'Failed to fetch nodes',
+        error: error.message || 'Failed to fetch pNodes from network',
         isLoading: false,
+        nodes: [],
+        totalCount: 0,
+        onlineCount: 0,
+        totalStorage: 0,
+        usedStorage: 0,
       });
     }
   },
-  
+
   refreshNodes: async () => {
+    console.log('♻️  Refreshing nodes...');
     await get().fetchNodes();
   },
-  
+
   getNodeByPubkey: (pubkey: string) => {
     return get().nodes.find((node) => node.pubkey === pubkey);
   },
-  
-  toggleMockData: (useMock: boolean) => {
-    set({ useMockData: useMock, error: null });
-    get().fetchNodes(); // Refetch with new mode
-  },
-  
+
   clearError: () => {
     set({ error: null });
   },
