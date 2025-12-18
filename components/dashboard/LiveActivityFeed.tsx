@@ -190,12 +190,12 @@ export function LiveActivityFeed() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-cyan-400 animate-pulse" />
+              <Activity className="h-5 w-5 text-cyan-400" />
               Live Activity Feed
             </CardTitle>
             <CardDescription>Real-time network events</CardDescription>
           </div>
-          <Badge variant="outline" className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30 animate-pulse">
+          <Badge variant="outline" className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30">
             <span className="relative flex h-2 w-2 mr-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />

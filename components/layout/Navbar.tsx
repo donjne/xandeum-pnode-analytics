@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Activity },
-  { name: 'Explore', href: '/explore', icon: Search },
+  { name: 'Explore', href: '/explorer', icon: Search },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Alerts', href: '/alerts', icon: Bell },
 ];

@@ -54,8 +54,7 @@ function StatCard({ title, value, icon: Icon, trend, loading, gradient, iconColo
         <CardTitle className="text-sm font-medium opacity-90">{title}</CardTitle>
         <div className={cn(
           "rounded-full p-2 transition-all duration-300",
-          iconColor,
-          "animate-pulse"
+          iconColor
         )}>
           <Icon className="h-5 w-5" />
         </div>

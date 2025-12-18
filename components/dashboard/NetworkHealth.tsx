@@ -144,7 +144,7 @@ export function NetworkHealth() {
             "flex items-center gap-2 rounded-full px-3 py-1.5 font-medium text-sm transition-all duration-300",
             config.bgColor,
             config.borderColor,
-            "border animate-pulse"
+            "border"
           )}>
             <StatusIcon className={cn("h-4 w-4", config.color)} />
             <span className={config.color}>{config.label}</span>
@@ -233,12 +233,12 @@ export function NetworkHealth() {
         )}>
           {healthMetrics.status === 'excellent' && (
             <p className="text-white/80">
-              Network is operating at peak performance! All systems nominal.
+              🎉 Network is operating at peak performance! All systems nominal.
             </p>
           )}
           {healthMetrics.status === 'good' && (
             <p className="text-white/80">
-              Network is healthy and stable. Minor variations within normal range.
+              ✅ Network is healthy and stable. Minor variations within normal range.
             </p>
           )}
           {healthMetrics.status === 'warning' && (
@@ -248,7 +248,7 @@ export function NetworkHealth() {
           )}
           {healthMetrics.status === 'critical' && (
             <p className="text-white/80">
-              Network health degraded. Immediate attention required.
+              🚨 Network health degraded. Immediate attention required.
             </p>
           )}
           {healthMetrics.status === 'unknown' && (

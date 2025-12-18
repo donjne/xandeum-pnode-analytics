@@ -129,7 +129,7 @@ export function TopPerformers() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-yellow-400 animate-pulse" />
+              <Trophy className="h-5 w-5 text-yellow-400" />
               Top Performers
             </CardTitle>
             <CardDescription>Top {rankedNodes.length} nodes by health score</CardDescription>

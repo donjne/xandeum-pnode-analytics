@@ -202,7 +202,7 @@ export function NetworkMap() {
                       <div className="space-y-2 p-1 min-w-[200px]">
                         <div className="flex items-center gap-2">
                           <div className={cn(
-                            "h-3 w-3 rounded-full animate-pulse",
+                            "h-3 w-3 rounded-full",
                             isOnline ? "bg-emerald-400" : "bg-gray-400"
                           )} />
                           <span className="font-semibold text-sm">
