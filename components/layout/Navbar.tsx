@@ -52,7 +52,7 @@ export function Navbar() {
         className={cn(
           'relative mx-auto transition-all duration-300 backdrop-blur-xl',
           scrolled
-            ? 'mt-3 mx-3 sm:mx-4 max-w-7xl rounded-2xl bg-[#0A0E27] shadow-lg shadow-black/20'
+            ? 'mt-3 mx-3 sm:mx-4 lg:mx-auto max-w-7xl rounded-2xl bg-[#0A0E27] shadow-lg shadow-black/20'
             : 'mt-0 mx-0 max-w-full rounded-none bg-[#0A0E27]'
         )}
       >
