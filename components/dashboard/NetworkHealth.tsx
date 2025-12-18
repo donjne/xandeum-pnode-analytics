@@ -58,7 +58,7 @@ export function NetworkHealth() {
       color: 'text-emerald-500',
       ring: 'stroke-emerald-500',
       icon: CheckCircle2,
-      message: 'Network is operating at peak performance.',
+      message: 'Network is functioning at peak performance range.',
     },
     good: {
       label: 'Good',

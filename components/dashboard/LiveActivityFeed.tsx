@@ -10,8 +10,13 @@ import {
   Clock,
   Activity,
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNetworkStore } from '@/stores/networkStore';
 import { cn } from '@/lib/utils';
@@ -31,157 +36,130 @@ export function LiveActivityFeed() {
   const [activities, setActivities] = React.useState<ActivityEvent[]>([]);
   const prevNodesRef = React.useRef<typeof nodes>([]);
 
-  // Generate real activity events by comparing node states
+  /* ---------------------------------------------
+     Generate activity events from real changes
+  --------------------------------------------- */
   React.useEffect(() => {
     if (isLoading || nodes.length === 0) return;
 
     const prevNodes = prevNodesRef.current;
     const newActivities: ActivityEvent[] = [];
 
-    // First load - show initial state
-    if (prevNodes.length === 0 && nodes.length > 0) {
-      const onlineNodes = nodes.filter(n => n.status === 'online');
+    if (prevNodes.length === 0) {
+      const online = nodes.filter((n) => n.status === 'online').length;
       newActivities.push({
         id: `init-${Date.now()}`,
         type: 'node_online',
-        message: `Network initialized with ${onlineNodes.length} online nodes`,
+        message: `Network initialized with ${online} online nodes`,
         timestamp: Date.now(),
         severity: 'success',
       });
     } else {
-      // Detect changes
-      nodes.forEach(node => {
-        const prevNode = prevNodes.find(n => n.pubkey === node.pubkey);
-        
-        if (!prevNode) {
-          // New node discovered
+      nodes.forEach((node) => {
+        const prev = prevNodes.find((n) => n.pubkey === node.pubkey);
+
+        if (!prev) {
           newActivities.push({
-            id: `new-${node.pubkey}-${Date.now()}`,
+            id: `new-${node.pubkey}`,
             type: 'node_online',
             message: `New node discovered`,
             timestamp: Date.now(),
             pubkey: node.pubkey,
             severity: 'success',
           });
-        } else {
-          // Status change
-          if (prevNode.status !== node.status) {
-            newActivities.push({
-              id: `status-${node.pubkey}-${Date.now()}`,
-              type: node.status === 'online' ? 'node_online' : 'node_offline',
-              message: `Node went ${node.status}`,
-              timestamp: Date.now(),
-              pubkey: node.pubkey,
-              severity: node.status === 'online' ? 'success' : 'warning',
-            });
-          }
-          
-          // Storage change (significant)
-          const storageDiff = Math.abs(node.storage_usage_percent - prevNode.storage_usage_percent);
-          if (storageDiff > 5) {
-            newActivities.push({
-              id: `storage-${node.pubkey}-${Date.now()}`,
-              type: 'storage_update',
-              message: `Storage usage ${node.storage_usage_percent > prevNode.storage_usage_percent ? 'increased' : 'decreased'} to ${node.storage_usage_percent.toFixed(1)}%`,
-              timestamp: Date.now(),
-              pubkey: node.pubkey,
-              severity: node.storage_usage_percent > 85 ? 'warning' : 'info',
-            });
-          }
-          
-          // Version update
-          if (prevNode.version !== node.version) {
-            newActivities.push({
-              id: `version-${node.pubkey}-${Date.now()}`,
-              type: 'version_update',
-              message: `Updated to v${node.version}`,
-              timestamp: Date.now(),
-              pubkey: node.pubkey,
-              severity: 'info',
-            });
-          }
+          return;
         }
-      });
 
-      // Detect removed nodes
-      prevNodes.forEach(prevNode => {
-        const exists = nodes.find(n => n.pubkey === prevNode.pubkey);
-        if (!exists) {
+        if (prev.status !== node.status) {
           newActivities.push({
-            id: `removed-${prevNode.pubkey}-${Date.now()}`,
-            type: 'node_offline',
-            message: `Node left the network`,
+            id: `status-${node.pubkey}`,
+            type: node.status === 'online' ? 'node_online' : 'node_offline',
+            message: `Node went ${node.status}`,
             timestamp: Date.now(),
-            pubkey: prevNode.pubkey,
-            severity: 'error',
+            pubkey: node.pubkey,
+            severity: node.status === 'online' ? 'success' : 'warning',
+          });
+        }
+
+        const storageDiff = Math.abs(
+          node.storage_usage_percent - prev.storage_usage_percent
+        );
+        if (storageDiff > 5) {
+          newActivities.push({
+            id: `storage-${node.pubkey}`,
+            type: 'storage_update',
+            message: `Storage usage ${
+              node.storage_usage_percent > prev.storage_usage_percent
+                ? 'increased'
+                : 'decreased'
+            } to ${node.storage_usage_percent.toFixed(1)}%`,
+            timestamp: Date.now(),
+            pubkey: node.pubkey,
+            severity:
+              node.storage_usage_percent > 85 ? 'warning' : 'info',
+          });
+        }
+
+        if (prev.version !== node.version) {
+          newActivities.push({
+            id: `version-${node.pubkey}`,
+            type: 'version_update',
+            message: `Updated to v${node.version}`,
+            timestamp: Date.now(),
+            pubkey: node.pubkey,
+            severity: 'info',
           });
         }
       });
     }
 
-    if (newActivities.length > 0) {
-      setActivities(prev => [...newActivities, ...prev].slice(0, 50)); // Keep last 50
+    if (newActivities.length) {
+      setActivities((prev) =>
+        [...newActivities, ...prev].slice(0, 50)
+      );
     }
 
     prevNodesRef.current = nodes;
   }, [nodes, isLoading]);
 
-  const getActivityIcon = (type: ActivityEvent['type']) => {
-    switch (type) {
-      case 'node_online':
-        return CheckCircle2;
-      case 'node_offline':
-        return AlertCircle;
-      case 'storage_update':
-        return HardDrive;
-      case 'version_update':
-        return TrendingUp;
-      default:
-        return Activity;
-    }
+  /* ---------------------------------------------
+     Icon + color only (NO backgrounds)
+  --------------------------------------------- */
+  const iconMap = {
+    node_online: CheckCircle2,
+    node_offline: AlertCircle,
+    storage_update: HardDrive,
+    version_update: TrendingUp,
   };
 
-  const getSeverityConfig = (severity: ActivityEvent['severity']) => {
-    switch (severity) {
-      case 'success':
-        return {
-          color: 'text-emerald-400',
-          bgColor: 'bg-emerald-500/20',
-          borderColor: 'border-emerald-500/30',
-        };
-      case 'warning':
-        return {
-          color: 'text-orange-400',
-          bgColor: 'bg-orange-500/20',
-          borderColor: 'border-orange-500/30',
-        };
-      case 'error':
-        return {
-          color: 'text-red-400',
-          bgColor: 'bg-red-500/20',
-          borderColor: 'border-red-500/30',
-        };
-      default:
-        return {
-          color: 'text-blue-400',
-          bgColor: 'bg-blue-500/20',
-          borderColor: 'border-blue-500/30',
-        };
-    }
+  const severityColor = {
+    success: 'text-emerald-500',
+    info: 'text-blue-500',
+    warning: 'text-amber-500',
+    error: 'text-red-500',
   };
 
   if (isLoading) {
     return (
-      <Card className="relative overflow-hidden border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-cyan-500/5">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
+      <Card
+        className={cn(
+          'rounded-2xl border border-transparent',
+          'bg-white shadow-[0_16px_40px_rgba(0,0,0,0.08)]',
+          'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl',
+          'dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]'
+        )}
+      >
         <CardHeader>
           <CardTitle>Live Activity Feed</CardTitle>
-          <CardDescription>Loading network events...</CardDescription>
+          <CardDescription>Loading network events…</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {[1, 2, 3].map(i => (
-              <div key={i} className="h-16 animate-pulse bg-white/5 rounded-lg" />
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="h-14 rounded-xl bg-black/5 dark:bg-white/5 animate-pulse"
+              />
             ))}
           </div>
         </CardContent>
@@ -190,100 +168,83 @@ export function LiveActivityFeed() {
   }
 
   return (
-    <Card className="relative overflow-hidden border-cyan-500/20 bg-gradient-to-br from-cyan-500/10 to-blue-500/10 transition-all duration-300 hover:shadow-xl hover:shadow-cyan-500/20">
-      {/* Shimmer */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
-      
-      <CardHeader className="relative">
+    <Card
+      className={cn(
+        'relative rounded-2xl border border-transparent',
+        'bg-white shadow-[0_16px_40px_rgba(0,0,0,0.08)]',
+        'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl',
+        'dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]'
+      )}
+    >
+      <CardHeader>
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Radio className="h-5 w-5 text-cyan-400" />
+              <Radio className="h-5 w-5 text-cyan-500" />
               Live Activity Feed
             </CardTitle>
             <CardDescription>Real-time network events</CardDescription>
           </div>
-          <Badge variant="outline" className="bg-cyan-500/20 text-cyan-300 border-cyan-500/30">
-            <span className="relative flex h-2 w-2 mr-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-cyan-400" />
+
+          <div className="flex items-center gap-2 text-xs font-medium text-cyan-500">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-cyan-500 opacity-75 animate-ping" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-cyan-500" />
             </span>
             Live
-          </Badge>
+          </div>
         </div>
       </CardHeader>
 
-      <CardContent className="relative">
+      <CardContent>
         {activities.length === 0 ? (
-          <div className="text-center py-8 text-white/60">
-            <Clock className="h-12 w-12 mx-auto mb-3 opacity-30 animate-pulse" />
-            <p>Waiting for network activity...</p>
-            <p className="text-xs mt-2">Events will appear as nodes join or change status</p>
+          <div className="py-12 text-center text-slate-500 dark:text-white/60">
+            <Clock className="h-10 w-10 mx-auto mb-3 opacity-40" />
+            Waiting for network activity…
           </div>
         ) : (
-          <ScrollArea className="h-[400px] pr-4">
-            <div className="space-y-3">
-              {activities.map((activity) => {
-                const Icon = getActivityIcon(activity.type);
-                const config = getSeverityConfig(activity.severity);
-                
+          <ScrollArea className="h-[420px] pr-2">
+            <ul className="space-y-1">
+              {activities.map((a) => {
+                const Icon = iconMap[a.type] ?? Activity;
                 return (
-                  <div
-                    key={activity.id}
-                    className={cn(
-                      "group relative overflow-hidden rounded-lg border p-3 transition-all duration-300",
-                      "backdrop-blur-sm hover:scale-[1.02]",
-                      config.bgColor,
-                      config.borderColor
-                    )}
+                  <li
+                    key={a.id}
+                    className="group flex gap-4 rounded-xl px-3 py-3 transition hover:bg-black/5 dark:hover:bg-white/5"
                   >
-                    {/* Hover shimmer */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:animate-[shimmer_1s_ease-in-out]" />
-                    
-                    <div className="relative flex items-start gap-3">
-                      <div className={cn(
-                        "rounded-full p-2 mt-0.5",
-                        config.bgColor
-                      )}>
-                        <Icon className={cn("h-4 w-4", config.color)} />
+                    <Icon
+                      className={cn(
+                        'mt-0.5 h-4 w-4 shrink-0',
+                        severityColor[a.severity]
+                      )}
+                    />
+
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-slate-900 dark:text-white/90">
+                        {a.message}
                       </div>
 
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="text-sm font-medium text-white/90">
-                            {activity.message}
-                          </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-xs text-white/50">
-                          {activity.pubkey && (
-                            <>
-                              <span className="font-mono truncate max-w-[150px]">
-                                {activity.pubkey.slice(0, 8)}...{activity.pubkey.slice(-4)}
-                              </span>
-                              <span>•</span>
-                            </>
-                          )}
-                          <span>{formatDistanceToNow(activity.timestamp, { addSuffix: true })}</span>
-                        </div>
-                      </div>
-
-                      <Badge 
-                        variant="outline"
-                        className={cn(
-                          "text-xs",
-                          config.bgColor,
-                          config.borderColor,
-                          config.color
+                      <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500 dark:text-white/50">
+                        {a.pubkey && (
+                          <>
+                            <span className="font-mono truncate max-w-[140px]">
+                              {a.pubkey.slice(0, 8)}…
+                              {a.pubkey.slice(-4)}
+                            </span>
+                            <span>•</span>
+                          </>
                         )}
-                      >
-                        {activity.severity}
-                      </Badge>
+                        <span>
+                          {formatDistanceToNow(a.timestamp, {
+                            addSuffix: true,
+                          })}
+                        </span>
+                      </div>
                     </div>
-                  </div>
+                  </li>
                 );
               })}
-            </div>
+            </ul>
           </ScrollArea>
         )}
       </CardContent>
