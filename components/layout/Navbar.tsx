@@ -46,18 +46,19 @@ export function Navbar() {
 
   return (
     <nav className="fixed inset-x-0 top-0 z-50">
-      {/* STABLE OUTER SHELL (never animates width) */}
       <div className="flex w-full justify-center">
-        {/* ANIMATED SURFACE */}
         <div
           className={cn(
             'relative w-full transition-all duration-300 ease-out backdrop-blur-xl origin-center',
             scrolled
-              ? 'mt-3 max-w-7xl rounded-2xl bg-[#0A0E27] shadow-lg shadow-black/20 scale-[0.98]'
-              : 'mt-0 max-w-full rounded-none bg-[#0A0E27] scale-100'
+              ? 'mt-3 max-w-7xl rounded-2xl shadow-lg'
+              : 'mt-0 max-w-full rounded-none',
+            // LIGHT
+            'bg-white text-black shadow-black/10',
+            // DARK
+            'dark:bg-[#0A0E27] dark:text-white dark:shadow-black/40'
           )}
         >
-          {/* INNER CONTENT */}
           <div
             className={cn(
               'flex h-16 items-center justify-between transition-all duration-300',
@@ -67,19 +68,17 @@ export function Navbar() {
             {/* LEFT */}
             <div className="flex items-center gap-4">
               <Image src="/logo.png" alt="Xandeum" width={34} height={34} />
-              <span className="text-lg font-semibold text-white">
-                Xandeum
-              </span>
+              <span className="text-lg font-semibold">Xandeum</span>
 
               {totalCount > 0 && (
-                <div className="hidden md:flex items-center gap-2 ml-4 rounded-lg bg-blue-500/10 px-3 py-1.5">
+                <div className="hidden md:flex items-center gap-2 ml-4 rounded-lg px-3 py-1.5 bg-black/5 dark:bg-white/10">
                   <span
                     className={cn(
                       'h-2 w-2 rounded-full',
-                      onlineCount > 0 ? 'bg-emerald-400' : 'bg-gray-400'
+                      onlineCount > 0 ? 'bg-emerald-500' : 'bg-gray-400'
                     )}
                   />
-                  <span className="text-xs text-slate-300">
+                  <span className="text-xs text-slate-600 dark:text-slate-300">
                     {onlineCount}/{totalCount} Online
                   </span>
                 </div>
@@ -93,10 +92,10 @@ export function Navbar() {
                   key={name}
                   href={href}
                   className={cn(
-                    'flex items-center gap-2 text-sm font-medium transition',
+                    'flex items-center gap-2 text-sm font-medium transition-colors',
                     pathname === href
-                      ? 'text-white'
-                      : 'text-slate-300 hover:text-white'
+                      ? 'text-black dark:text-white'
+                      : 'text-slate-600 hover:text-black dark:text-slate-300 dark:hover:text-white'
                   )}
                 >
                   <Icon className="h-4 w-4" />
@@ -109,10 +108,10 @@ export function Navbar() {
                 <button
                   onClick={() => setMobileToolsOpen((o) => !o)}
                   className={cn(
-                    'flex items-center gap-2 text-sm font-medium transition',
+                    'flex items-center gap-2 text-sm font-medium transition-colors',
                     pathname.startsWith('/tools')
-                      ? 'text-white'
-                      : 'text-slate-300 hover:text-white'
+                      ? 'text-black dark:text-white'
+                      : 'text-slate-600 hover:text-black dark:text-slate-300 dark:hover:text-white'
                   )}
                 >
                   <Calculator className="h-4 w-4" />
@@ -126,13 +125,13 @@ export function Navbar() {
                 </button>
 
                 {mobileToolsOpen && (
-                  <div className="absolute right-0 mt-2 w-52 rounded-xl bg-[#111633]/95 backdrop-blur-xl shadow-2xl p-1">
+                  <div className="absolute right-0 mt-2 w-52 rounded-xl p-1 shadow-xl bg-white dark:bg-[#111633]">
                     {tools.map(({ name, href, icon: Icon }) => (
                       <Link
                         key={name}
                         href={href}
                         onClick={() => setMobileToolsOpen(false)}
-                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition"
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-700 hover:bg-black/5 dark:text-slate-300 dark:hover:bg-white/5"
                       >
                         <Icon className="h-4 w-4" />
                         {name}
@@ -145,7 +144,7 @@ export function Navbar() {
               <ThemeToggle />
             </div>
 
-            {/* MOBILE TOGGLE */}
+            {/* MOBILE */}
             <div className="lg:hidden flex items-center gap-2">
               <ThemeToggle />
               <button
@@ -154,19 +153,19 @@ export function Navbar() {
               >
                 <span
                   className={cn(
-                    'absolute left-1/2 top-2 h-0.5 w-6 -translate-x-1/2 bg-white transition-all',
+                    'absolute left-1/2 top-2 h-0.5 w-6 -translate-x-1/2 transition-all bg-black dark:bg-white',
                     mobileOpen && 'top-4 rotate-45'
                   )}
                 />
                 <span
                   className={cn(
-                    'absolute left-1/2 top-4 h-0.5 w-6 -translate-x-1/2 bg-white transition-all',
+                    'absolute left-1/2 top-4 h-0.5 w-6 -translate-x-1/2 transition-all bg-black dark:bg-white',
                     mobileOpen && 'opacity-0'
                   )}
                 />
                 <span
                   className={cn(
-                    'absolute left-1/2 top-6 h-0.5 w-6 -translate-x-1/2 bg-white transition-all',
+                    'absolute left-1/2 top-6 h-0.5 w-6 -translate-x-1/2 transition-all bg-black dark:bg-white',
                     mobileOpen && 'top-4 -rotate-45'
                   )}
                 />
@@ -185,26 +184,26 @@ export function Navbar() {
             : 'opacity-0 -translate-y-4 pointer-events-none'
         )}
       >
-        <div className="mx-4 mt-3 rounded-2xl bg-[#111633]/95 backdrop-blur-xl shadow-2xl p-4 space-y-2">
+        <div className="mx-4 mt-3 rounded-2xl p-4 space-y-2 shadow-xl bg-white dark:bg-[#111633]">
           {navigation.map(({ name, href, icon: Icon }) => (
             <Link
               key={name}
               href={href}
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white"
+              className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-slate-700 hover:bg-black/5 dark:text-slate-300 dark:hover:bg-white/5"
             >
               <Icon className="h-4 w-4" />
               {name}
             </Link>
           ))}
 
-          <div className="pt-2 border-t border-white/10">
+          <div className="pt-2 border-t border-black/10 dark:border-white/10">
             {tools.map(({ name, href, icon: Icon }) => (
               <Link
                 key={name}
                 href={href}
                 onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-slate-300 hover:bg-white/5 hover:text-white"
+                className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-slate-700 hover:bg-black/5 dark:text-slate-300 dark:hover:bg-white/5"
               >
                 <Icon className="h-4 w-4" />
                 {name}

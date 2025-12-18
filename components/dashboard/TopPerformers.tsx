@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Trophy, Medal, Award, TrendingUp } from 'lucide-react';
+import { Trophy, Medal, Award, TrendingUp, CircleDot } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -117,29 +117,27 @@ export function TopPerformers() {
   return (
     <Card
       className={cn(
-        'relative overflow-hidden rounded-2xl',
-        // light
+        'relative overflow-hidden rounded-2xl border border-transparent',
+        // light mode
         'bg-white shadow-[0_16px_40px_rgba(0,0,0,0.08)]',
-        // dark (NO WHITE BORDER)
-        'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl dark:shadow-black/40'
+        // dark mode separation (no white border)
+        'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl',
+        'dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]'
       )}
     >
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-yellow-400" />
-            Top Performers
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <Trophy className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+            Top {rankedNodes.length} Performers
           </CardTitle>
-          <CardDescription>
-            Top {rankedNodes.length} nodes by health score
-          </CardDescription>
         </div>
 
         <Badge
           variant="outline"
           className="bg-slate-100 text-slate-700 border-transparent dark:bg-white/10 dark:text-white"
         >
-          <TrendingUp className="mr-1 h-3 w-3" />
+          <CircleDot className="mr-1 h-3 w-3" />
           Live
         </Badge>
       </CardHeader>

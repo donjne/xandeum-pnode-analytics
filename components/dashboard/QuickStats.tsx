@@ -208,7 +208,7 @@ function MobileCarousel() {
 
   return (
     <div className="relative lg:hidden">
-      <div className="overflow-hidden">
+      <div className="overflow-hidden rounded-2xl">
         <div
           className="flex transition-transform duration-700 ease-in-out"
           style={{ transform: `translateX(-${index * 100}%)` }}
