@@ -4,28 +4,18 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="mt-auto border-t border-blue-500/10 bg-[#0A0E27]/90 backdrop-blur-xl">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
-        <div className="flex flex-col sm:flex-row items-center justify-between py-6 gap-4 text-sm">
-          <p className="text-gray-400">
-            © 2025 Xandeum Network. Built for pNode Analytics.
-          </p>
-          <div className="flex items-center gap-6">
-            <Link 
-              href="https://docs.xandeum.network" 
-              target="_blank" 
-              className="text-gray-400 hover:text-white transition-colors duration-200"
-            >
-              Documentation
-            </Link>
-            <Link 
-              href="https://github.com/Xandeum" 
-              target="_blank" 
-              className="text-gray-400 hover:text-white transition-colors duration-200"
-            >
-              GitHub
-            </Link>
-          </div>
+    <footer className="bg-[#0A0E27]/85 dark:bg-[#0A0E27]/85 bg-white/80 backdrop-blur-xl">
+      <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
+        <p className="text-slate-500 dark:text-slate-400">
+          © 2025 Xandeum Network
+        </p>
+        <div className="flex gap-6">
+          <Link href="https://docs.xandeum.network" className="hover:text-black dark:hover:text-white">
+            Docs
+          </Link>
+          <Link href="https://github.com/Xandeum" className="hover:text-black dark:hover:text-white">
+            GitHub
+          </Link>
         </div>
       </div>
     </footer>
