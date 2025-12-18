@@ -179,11 +179,10 @@ export function LiveActivityFeed() {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <Radio className="h-5 w-5 text-cyan-500" />
+            <CardTitle className="flex items-center gap-2 text-lg">
+              <Radio className="h-5 w-5 text-slate-500 dark:text-slate-400" />
               Live Activity Feed
             </CardTitle>
-            <CardDescription>Real-time network events</CardDescription>
           </div>
 
           <div className="flex items-center gap-2 text-xs font-medium text-cyan-500">
