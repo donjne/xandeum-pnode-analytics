@@ -53,28 +53,44 @@ export function NetworkMap() {
 
     const fetchLocations = async () => {
       const newLocations = new Map(geoLocations);
+      let fetchedCount = 0;
+      const maxPerBatch = 10; // Rate limit: 10 requests per batch
       
       for (const node of nodes) {
         if (geoLocations.has(node.pubkey)) continue;
+        if (fetchedCount >= maxPerBatch) break; // Prevent rate limiting
 
         try {
           // Extract IP from address (format: "IP:PORT")
           const ip = node.address.split(':')[0];
           
-          // Use ip-api.com for free geolocation
-          const response = await fetch(`http://ip-api.com/json/${ip}?fields=status,country,city,lat,lon`);
+          // Use HTTPS ip-api.com for free geolocation
+          const response = await fetch(`https://ipapi.co/${ip}/json/`, {
+            headers: { 'User-Agent': 'XandeumAnalytics/1.0' }
+          });
+          
+          if (!response.ok) {
+            // Silent fail - don't spam console
+            continue;
+          }
+          
           const data = await response.json();
           
-          if (data.status === 'success') {
+          if (data.latitude && data.longitude) {
             newLocations.set(node.pubkey, {
-              lat: data.lat,
-              lng: data.lon,
-              country: data.country,
-              city: data.city,
+              lat: data.latitude,
+              lng: data.longitude,
+              country: data.country_name || 'Unknown',
+              city: data.city || 'Unknown',
             });
+            fetchedCount++;
           }
+          
+          // Small delay between requests to avoid rate limiting
+          await new Promise(resolve => setTimeout(resolve, 200));
         } catch (error) {
-          console.error(`Failed to fetch location for ${node.pubkey}:`, error);
+          // Silent fail for geo errors
+          continue;
         }
       }
       
@@ -84,7 +100,7 @@ export function NetworkMap() {
     };
 
     fetchLocations();
-  }, [nodes, geoLocations]);
+  }, [nodes]);
 
   // Calculate map center from node locations
   const mapCenter: [number, number] = React.useMemo(() => {

@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Activity, CheckCircle2, AlertCircle, TrendingUp, HardDrive, Clock } from 'lucide-react';
+import { Radio, CheckCircle2, AlertCircle, TrendingUp, HardDrive, Clock } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -190,7 +190,7 @@ export function LiveActivityFeed() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-cyan-400" />
+              <Radio className="h-5 w-5 text-cyan-400" />
               Live Activity Feed
             </CardTitle>
             <CardDescription>Real-time network events</CardDescription>
