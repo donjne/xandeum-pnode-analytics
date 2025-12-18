@@ -1,8 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { Activity, AlertCircle, CheckCircle2, TrendingUp } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Activity,
+  AlertCircle,
+  CheckCircle2,
+} from 'lucide-react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useNetworkStore } from '@/stores/networkStore';
 import { cn } from '@/lib/utils';
@@ -10,7 +14,6 @@ import { cn } from '@/lib/utils';
 export function NetworkHealth() {
   const { nodes, onlineCount, totalCount, isLoading } = useNetworkStore();
 
-  // Calculate health metrics from real data
   const healthMetrics = React.useMemo(() => {
     if (nodes.length === 0) {
       return {
@@ -21,40 +24,30 @@ export function NetworkHealth() {
       };
     }
 
-    // Calculate average uptime
-    const totalUptime = nodes.reduce((sum, node) => sum + node.uptime, 0);
-    const avgUptime = totalUptime / nodes.length;
-    const uptimeHours = avgUptime / 3600;
+    const avgUptime =
+      nodes.reduce((sum, n) => sum + n.uptime, 0) / nodes.length / 3600;
 
-    // Calculate storage health
-    const avgStorageUsage = nodes.reduce((sum, node) => sum + node.storage_usage_percent, 0) / nodes.length;
+    const avgStorage =
+      nodes.reduce((sum, n) => sum + n.storage_usage_percent, 0) /
+      nodes.length;
 
-    // Calculate overall health score
-    const onlinePercentage = (onlineCount / totalCount) * 100;
-    let healthScore = 0;
-    
-    // Score based on online percentage (0-40 points)
-    healthScore += (onlinePercentage / 100) * 40;
-    
-    // Score based on uptime (0-30 points)
-    const uptimeScore = Math.min((uptimeHours / 24) * 30, 30); // 24h uptime = full points
-    healthScore += uptimeScore;
-    
-    // Score based on storage health (0-30 points)
-    const storageScore = avgStorageUsage < 80 ? 30 : Math.max(0, 30 - (avgStorageUsage - 80) * 2);
-    healthScore += storageScore;
+    const onlinePct = (onlineCount / totalCount) * 100;
 
-    // Determine status
+    let score = 0;
+    score += (onlinePct / 100) * 40;
+    score += Math.min((avgUptime / 24) * 30, 30);
+    score += avgStorage < 80 ? 30 : Math.max(0, 30 - (avgStorage - 80) * 2);
+
     let status: 'excellent' | 'good' | 'warning' | 'critical' | 'unknown';
-    if (healthScore >= 85) status = 'excellent';
-    else if (healthScore >= 70) status = 'good';
-    else if (healthScore >= 50) status = 'warning';
+    if (score >= 85) status = 'excellent';
+    else if (score >= 70) status = 'good';
+    else if (score >= 50) status = 'warning';
     else status = 'critical';
 
     return {
-      uptime: onlinePercentage,
-      avgStorage: avgStorageUsage,
-      healthScore: Math.round(healthScore),
+      uptime: onlinePct,
+      avgStorage,
+      healthScore: Math.round(score),
       status,
     };
   }, [nodes, onlineCount, totalCount]);
@@ -62,43 +55,38 @@ export function NetworkHealth() {
   const statusConfig = {
     excellent: {
       label: 'Excellent',
-      color: 'text-emerald-400',
-      bgColor: 'bg-emerald-500/20',
-      borderColor: 'border-emerald-500/30',
+      color: 'text-emerald-500',
+      ring: 'stroke-emerald-500',
       icon: CheckCircle2,
-      gradient: 'from-emerald-500/20 to-emerald-600/20',
+      message: 'Network is operating at peak performance.',
     },
     good: {
       label: 'Good',
-      color: 'text-blue-400',
-      bgColor: 'bg-blue-500/20',
-      borderColor: 'border-blue-500/30',
+      color: 'text-blue-500',
+      ring: 'stroke-blue-500',
       icon: Activity,
-      gradient: 'from-blue-500/20 to-blue-600/20',
+      message: 'Network is healthy and stable.',
     },
     warning: {
       label: 'Warning',
-      color: 'text-orange-400',
-      bgColor: 'bg-orange-500/20',
-      borderColor: 'border-orange-500/30',
+      color: 'text-orange-500',
+      ring: 'stroke-orange-500',
       icon: AlertCircle,
-      gradient: 'from-orange-500/20 to-orange-600/20',
+      message: 'Some nodes need attention.',
     },
     critical: {
       label: 'Critical',
-      color: 'text-red-400',
-      bgColor: 'bg-red-500/20',
-      borderColor: 'border-red-500/30',
+      color: 'text-red-500',
+      ring: 'stroke-red-500',
       icon: AlertCircle,
-      gradient: 'from-red-500/20 to-red-600/20',
+      message: 'Network health is degraded.',
     },
     unknown: {
       label: 'Unknown',
-      color: 'text-gray-400',
-      bgColor: 'bg-gray-500/20',
-      borderColor: 'border-gray-500/30',
+      color: 'text-slate-400',
+      ring: 'stroke-slate-400',
       icon: Activity,
-      gradient: 'from-gray-500/20 to-gray-600/20',
+      message: 'Waiting for network data.',
     },
   };
 
@@ -107,157 +95,144 @@ export function NetworkHealth() {
 
   if (isLoading) {
     return (
-      <Card className="relative overflow-hidden border-blue-500/20 bg-gradient-to-br from-blue-500/5 to-purple-500/5">
-        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-pulse" />
+      <Card className="rounded-2xl bg-white shadow dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl">
         <CardHeader>
           <CardTitle>Network Health</CardTitle>
-          <CardDescription>Loading health metrics...</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="h-32 animate-pulse bg-white/5 rounded-lg" />
-        </CardContent>
+        <CardContent className="h-48 animate-pulse bg-slate-100 dark:bg-white/5 rounded-xl" />
       </Card>
     );
   }
 
   return (
-    <Card 
+    <Card
       className={cn(
-        "relative overflow-hidden border transition-all duration-300 hover:scale-[1.02] hover:shadow-xl",
-        "bg-gradient-to-br backdrop-blur-sm",
-        config.gradient
+        'relative overflow-hidden rounded-2xl',
+        // light
+        'bg-white shadow-[0_16px_40px_rgba(0,0,0,0.08)]',
+        // dark
+        'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl dark:shadow-black/30'
       )}
     >
-      {/* Shimmer effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite]" />
-      
-      <CardHeader className="relative">
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
-              Network Health
-            </CardTitle>
-            <CardDescription className="mt-1">Real-time network status</CardDescription>
-          </div>
-          <div className={cn(
-            "flex items-center gap-2 rounded-full px-3 py-1.5 font-medium text-sm transition-all duration-300",
-            config.bgColor,
-            config.borderColor,
-            "border"
-          )}>
-            <StatusIcon className={cn("h-4 w-4", config.color)} />
-            <span className={config.color}>{config.label}</span>
-          </div>
+      <CardHeader className="flex flex-row items-center justify-between">
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Activity className="h-5 w-5 text-slate-500 dark:text-slate-400" />
+          Network Health
+        </CardTitle>
+
+        <div
+          className={cn(
+            'flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium',
+            'bg-slate-100 text-slate-700',
+            'dark:bg-white/10 dark:text-white'
+          )}
+        >
+          <StatusIcon className={cn('h-4 w-4', config.color)} />
+          {config.label}
         </div>
       </CardHeader>
 
-      <CardContent className="relative space-y-6">
-        {/* Health Score Circle */}
+      <CardContent className="space-y-8">
+        {/* HERO SCORE */}
         <div className="flex items-center justify-center">
-          <div className="relative">
-            {/* Outer glow ring */}
-            <div className={cn(
-              "absolute inset-0 rounded-full blur-xl opacity-50",
-              config.bgColor
-            )} />
-            
-            {/* Score circle */}
-            <div className={cn(
-              "relative flex h-32 w-32 items-center justify-center rounded-full border-4 transition-all duration-500",
-              config.borderColor,
-              config.bgColor
-            )}>
-              <div className="text-center">
-                <div className={cn(
-                  "text-4xl font-bold bg-gradient-to-br bg-clip-text text-transparent",
-                  "from-white to-white/60"
-                )}>
-                  {healthMetrics.healthScore}
-                </div>
-                <div className="text-xs text-white/60">Health Score</div>
+          <div className="relative h-36 w-36">
+            <svg className="h-full w-full -rotate-90">
+              <circle
+                cx="72"
+                cy="72"
+                r="64"
+                strokeWidth="8"
+                className="fill-none stroke-slate-200 dark:stroke-white/10"
+              />
+              <circle
+                cx="72"
+                cy="72"
+                r="64"
+                strokeWidth="8"
+                strokeDasharray={2 * Math.PI * 64}
+                strokeDashoffset={
+                  2 * Math.PI * 64 * (1 - healthMetrics.healthScore / 100)
+                }
+                className={cn(
+                  'fill-none transition-all duration-700',
+                  config.ring
+                )}
+              />
+            </svg>
+
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className="text-4xl font-semibold text-slate-900 dark:text-white">
+                {healthMetrics.healthScore}
+              </div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">
+                Health Score
               </div>
             </div>
           </div>
         </div>
 
-        {/* Metrics */}
+        {/* METRICS */}
         <div className="space-y-4">
-          {/* Network Uptime */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-white/80">Network Uptime</span>
-              <span className={cn("font-medium", config.color)}>
-                {healthMetrics.uptime.toFixed(1)}%
-              </span>
-            </div>
-            <Progress 
-              value={healthMetrics.uptime} 
-              className="h-2 bg-white/10"
-            />
-          </div>
+          <Metric
+            label="Network Uptime"
+            value={`${healthMetrics.uptime.toFixed(1)}%`}
+            percent={healthMetrics.uptime}
+            color={config.color}
+          />
 
-          {/* Storage Health */}
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-white/80">Avg Storage Usage</span>
-              <span className={cn(
-                "font-medium",
-                healthMetrics.avgStorage < 70 ? 'text-emerald-400' :
-                healthMetrics.avgStorage < 85 ? 'text-orange-400' :
-                'text-red-400'
-              )}>
-                {healthMetrics.avgStorage.toFixed(1)}%
-              </span>
-            </div>
-            <Progress 
-              value={healthMetrics.avgStorage} 
-              className="h-2 bg-white/10"
-            />
-          </div>
+          <Metric
+            label="Avg Storage Usage"
+            value={`${healthMetrics.avgStorage.toFixed(1)}%`}
+            percent={healthMetrics.avgStorage}
+            color={
+              healthMetrics.avgStorage < 70
+                ? 'text-emerald-500'
+                : healthMetrics.avgStorage < 85
+                ? 'text-orange-500'
+                : 'text-red-500'
+            }
+          />
 
-          {/* Active Nodes */}
-          <div className="flex items-center justify-between rounded-lg bg-white/5 p-3 backdrop-blur-sm">
-            <span className="text-sm text-white/80">Active Nodes</span>
-            <span className="text-lg font-bold text-emerald-400">
+          <div className="flex items-center justify-between rounded-lg bg-slate-100 p-3 dark:bg-white/5">
+            <span className="text-sm text-slate-600 dark:text-slate-400">
+              Active Nodes
+            </span>
+            <span className="text-lg font-semibold text-emerald-500">
               {onlineCount} / {totalCount}
             </span>
           </div>
         </div>
 
-        {/* Status message */}
-        <div className={cn(
-          "rounded-lg border p-3 text-sm backdrop-blur-sm",
-          config.borderColor,
-          config.bgColor
-        )}>
-          {healthMetrics.status === 'excellent' && (
-            <p className="text-white/80">
-              🎉 Network is operating at peak performance! All systems nominal.
-            </p>
-          )}
-          {healthMetrics.status === 'good' && (
-            <p className="text-white/80">
-              ✅ Network is healthy and stable. Minor variations within normal range.
-            </p>
-          )}
-          {healthMetrics.status === 'warning' && (
-            <p className="text-white/80">
-              ⚠️  Some nodes experiencing issues. Monitor network closely.
-            </p>
-          )}
-          {healthMetrics.status === 'critical' && (
-            <p className="text-white/80">
-              🚨 Network health degraded. Immediate attention required.
-            </p>
-          )}
-          {healthMetrics.status === 'unknown' && (
-            <p className="text-white/80">
-              ℹ️  No nodes detected. Waiting for network data...
-            </p>
-          )}
+        {/* STATUS MESSAGE */}
+        <div className="rounded-lg bg-slate-100 p-3 text-sm text-slate-700 dark:bg-white/5 dark:text-white/80">
+          {config.message}
         </div>
       </CardContent>
     </Card>
+  );
+}
+
+/* ---------------------------------------------
+   Metric Row
+--------------------------------------------- */
+function Metric({
+  label,
+  value,
+  percent,
+  color,
+}: {
+  label: string;
+  value: string;
+  percent: number;
+  color: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between text-sm">
+        <span className="text-slate-600 dark:text-slate-400">{label}</span>
+        <span className={cn('font-medium', color)}>{value}</span>
+      </div>
+      <Progress value={percent} className="h-2" />
+    </div>
   );
 }

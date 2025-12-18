@@ -221,7 +221,7 @@ function MobileCarousel() {
       </div>
 
       {/* Controls */}
-      <button
+      {/* <button
         onClick={() =>
           setIndex((i) => (i - 1 + slides.length) % slides.length)
         }
@@ -237,7 +237,7 @@ function MobileCarousel() {
         className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 backdrop-blur hover:bg-black/60"
       >
         <ChevronRight className="h-5 w-5 text-white" />
-      </button>
+      </button> */}
     </div>
   );
 }
