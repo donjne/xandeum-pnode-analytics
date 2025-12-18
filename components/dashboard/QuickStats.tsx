@@ -1,16 +1,22 @@
 'use client';
 
 import * as React from 'react';
-import { Server, Activity, HardDrive, TrendingUp } from 'lucide-react';
+import {
+  Server,
+  Activity,
+  HardDrive,
+  TrendingUp,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 import { useNetworkStore } from '@/stores/networkStore';
 import { formatBytes, formatNumber, formatPercentage } from '@/lib/utils';
 import { cn } from '@/lib/utils';
 
-/* -----------------------------
-   Low-level stat item
--------------------------------- */
-
-function StatItem({
+/* ---------------------------------------------
+   Small stat block (left-aligned content)
+--------------------------------------------- */
+function Stat({
   label,
   value,
   icon: Icon,
@@ -22,19 +28,19 @@ function StatItem({
   color: string;
 }) {
   return (
-    <div className="flex items-start gap-3">
+    <div className="flex items-start gap-4">
       <div
         className={cn(
-          'mt-1 flex h-7 w-7 items-center justify-center rounded-md',
+          'flex h-9 w-9 items-center justify-center rounded-lg',
           color
         )}
       >
-        <Icon className="h-4 w-4" />
+        <Icon className="h-5 w-5 text-white" />
       </div>
 
       <div>
-        <div className="text-xs text-muted-foreground">{label}</div>
-        <div className="text-2xl font-semibold tracking-tight">
+        <div className="text-sm text-slate-400">{label}</div>
+        <div className="mt-0.5 text-3xl font-semibold tracking-tight text-white">
           {value}
         </div>
       </div>
@@ -42,137 +48,204 @@ function StatItem({
   );
 }
 
-/* -----------------------------
-   Glass surface group
--------------------------------- */
-
-function StatGroup({
+/* ---------------------------------------------
+   Glass surface with right-side glow
+--------------------------------------------- */
+function StatSurface({
+  glow,
   children,
 }: {
+  glow: string;
   children: React.ReactNode;
 }) {
   return (
     <div
       className={cn(
-        'relative rounded-2xl p-6',
-        'bg-[#0A0E27]/80',
-        'backdrop-blur-xl',
-        'shadow-lg shadow-black/20',
-        'ring-1 ring-white/10'
+        'relative overflow-hidden rounded-2xl p-6',
+        'bg-[#0A0E27]/80 backdrop-blur-xl',
+        'shadow-lg shadow-black/30',
+        'transition-transform duration-300 ease-out',
+        'hover:-translate-y-0.5'
       )}
     >
-      {/* subtle top highlight */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/20" />
+      {/* Right-side glow */}
+      <div
+        className={cn(
+          'pointer-events-none absolute inset-y-0 right-0 w-1/2',
+          glow
+        )}
+      />
 
-      <div className="space-y-6">{children}</div>
+      <div className="relative space-y-6">{children}</div>
     </div>
   );
 }
 
-/* -----------------------------
-   QuickStats
--------------------------------- */
-
-export function QuickStats() {
-  const {
-    nodes,
-    isLoading,
-    totalCount,
-    onlineCount,
-    totalStorage,
-  } = useNetworkStore();
+/* ---------------------------------------------
+   Desktop layout
+--------------------------------------------- */
+function DesktopStats() {
+  const { nodes, totalCount, onlineCount, totalStorage } =
+    useNetworkStore();
 
   const avgUtilization = React.useMemo(() => {
-    if (nodes.length === 0) return 0;
-    const total = nodes.reduce(
-      (sum, n) => sum + n.storage_usage_percent,
-      0
+    if (!nodes.length) return 0;
+    return (
+      nodes.reduce((sum, n) => sum + n.storage_usage_percent, 0) /
+      nodes.length
     );
-    return total / nodes.length;
   }, [nodes]);
 
-  if (isLoading) {
+  return (
+    <div className="hidden lg:grid grid-cols-2 gap-6 animate-in fade-in slide-in-from-bottom-2 duration-500">
+      <StatSurface glow="bg-gradient-to-l from-blue-600/15 via-transparent to-transparent">
+        <Stat
+          label="Total pNodes"
+          value={formatNumber(totalCount)}
+          icon={Server}
+          color="bg-blue-600"
+        />
+        <Stat
+          label="Online Nodes"
+          value={`${onlineCount}/${totalCount}`}
+          icon={Activity}
+          color="bg-emerald-600"
+        />
+      </StatSurface>
+
+      <StatSurface glow="bg-gradient-to-l from-purple-600/15 via-transparent to-transparent">
+        <Stat
+          label="Total Storage"
+          value={formatBytes(totalStorage)}
+          icon={HardDrive}
+          color="bg-purple-600"
+        />
+        <Stat
+          label="Avg Utilization"
+          value={formatPercentage(avgUtilization, 1)}
+          icon={TrendingUp}
+          color="bg-orange-600"
+        />
+      </StatSurface>
+    </div>
+  );
+}
+
+/* ---------------------------------------------
+   Mobile carousel
+--------------------------------------------- */
+function MobileCarousel() {
+  const { nodes, totalCount, onlineCount, totalStorage } =
+    useNetworkStore();
+
+  const avgUtilization = React.useMemo(() => {
+    if (!nodes.length) return 0;
     return (
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="h-40 rounded-2xl bg-muted animate-pulse" />
-        <div className="h-40 rounded-2xl bg-muted animate-pulse" />
-      </div>
+      nodes.reduce((sum, n) => sum + n.storage_usage_percent, 0) /
+      nodes.length
     );
-  }
+  }, [nodes]);
+
+  const [index, setIndex] = React.useState(0);
+  const timeoutRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const slides = [
+    <StatSurface
+      key="network"
+      glow="bg-gradient-to-l from-blue-600/20 via-transparent to-transparent"
+    >
+      <Stat
+        label="Total pNodes"
+        value={formatNumber(totalCount)}
+        icon={Server}
+        color="bg-blue-600"
+      />
+      <Stat
+        label="Online Nodes"
+        value={`${onlineCount}/${totalCount}`}
+        icon={Activity}
+        color="bg-emerald-600"
+      />
+    </StatSurface>,
+
+    <StatSurface
+      key="storage"
+      glow="bg-gradient-to-l from-purple-600/20 via-transparent to-transparent"
+    >
+      <Stat
+        label="Total Storage"
+        value={formatBytes(totalStorage)}
+        icon={HardDrive}
+        color="bg-purple-600"
+      />
+      <Stat
+        label="Avg Utilization"
+        value={formatPercentage(avgUtilization, 1)}
+        icon={TrendingUp}
+        color="bg-orange-600"
+      />
+    </StatSurface>,
+  ];
+
+  const resetTimer = () => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
+      setIndex((i) => (i + 1) % slides.length);
+    }, 4500);
+  };
+
+  React.useEffect(() => {
+    resetTimer();
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [index]);
 
   return (
-    <>
-      {/* Desktop */}
-      <div className="hidden lg:grid grid-cols-2 gap-6">
-        <StatGroup>
-          <StatItem
-            label="Total pNodes"
-            value={formatNumber(totalCount)}
-            icon={Server}
-            color="bg-blue-600 text-white"
-          />
-          <StatItem
-            label="Online Nodes"
-            value={`${onlineCount}/${totalCount}`}
-            icon={Activity}
-            color="bg-emerald-600 text-white"
-          />
-        </StatGroup>
-
-        <StatGroup>
-          <StatItem
-            label="Total Storage"
-            value={formatBytes(totalStorage)}
-            icon={HardDrive}
-            color="bg-purple-600 text-white"
-          />
-          <StatItem
-            label="Avg Utilization"
-            value={formatPercentage(avgUtilization, 1)}
-            icon={TrendingUp}
-            color="bg-orange-600 text-white"
-          />
-        </StatGroup>
-      </div>
-
-      {/* Mobile carousel */}
-      <div className="lg:hidden">
-        <div className="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-2">
-          <div className="min-w-[85%] snap-center">
-            <StatGroup>
-              <StatItem
-                label="Total pNodes"
-                value={formatNumber(totalCount)}
-                icon={Server}
-                color="bg-blue-600 text-white"
-              />
-              <StatItem
-                label="Online Nodes"
-                value={`${onlineCount}/${totalCount}`}
-                icon={Activity}
-                color="bg-emerald-600 text-white"
-              />
-            </StatGroup>
-          </div>
-
-          <div className="min-w-[85%] snap-center">
-            <StatGroup>
-              <StatItem
-                label="Total Storage"
-                value={formatBytes(totalStorage)}
-                icon={HardDrive}
-                color="bg-purple-600 text-white"
-              />
-              <StatItem
-                label="Avg Utilization"
-                value={formatPercentage(avgUtilization, 1)}
-                icon={TrendingUp}
-                color="bg-orange-600 text-white"
-              />
-            </StatGroup>
-          </div>
+    <div className="relative lg:hidden">
+      <div className="overflow-hidden">
+        <div
+          className="flex transition-transform duration-700 ease-in-out"
+          style={{ transform: `translateX(-${index * 100}%)` }}
+        >
+          {slides.map((slide, i) => (
+            <div key={i} className="min-w-full px-1">
+              {slide}
+            </div>
+          ))}
         </div>
       </div>
-    </>
+
+      {/* Controls */}
+      <button
+        onClick={() =>
+          setIndex((i) => (i - 1 + slides.length) % slides.length)
+        }
+        className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 backdrop-blur hover:bg-black/60"
+      >
+        <ChevronLeft className="h-5 w-5 text-white" />
+      </button>
+
+      <button
+        onClick={() =>
+          setIndex((i) => (i + 1) % slides.length)
+        }
+        className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 backdrop-blur hover:bg-black/60"
+      >
+        <ChevronRight className="h-5 w-5 text-white" />
+      </button>
+    </div>
+  );
+}
+
+/* ---------------------------------------------
+   QuickStats (export)
+--------------------------------------------- */
+export function QuickStats() {
+  return (
+    <section className="relative">
+      <DesktopStats />
+      <MobileCarousel />
+    </section>
   );
 }

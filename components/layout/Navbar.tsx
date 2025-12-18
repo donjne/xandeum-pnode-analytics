@@ -5,7 +5,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Activity,
   Search,
   BarChart3,
   Bell,
@@ -47,131 +46,132 @@ export function Navbar() {
 
   return (
     <nav className="fixed inset-x-0 top-0 z-50">
-      {/* NAV CONTAINER */}
-      <div
-        className={cn(
-          'relative mx-auto transition-all duration-300 backdrop-blur-xl',
-          scrolled
-            ? 'mt-3 mx-3 sm:mx-4 lg:mx-auto max-w-7xl rounded-2xl bg-[#0A0E27] shadow-lg shadow-black/20'
-            : 'mt-0 mx-0 max-w-full rounded-none bg-[#0A0E27]'
-        )}
-      >
-        {/* INNER CONTENT */}
+      {/* STABLE OUTER SHELL (never animates width) */}
+      <div className="flex w-full justify-center">
+        {/* ANIMATED SURFACE */}
         <div
           className={cn(
-            'flex h-16 items-center justify-between transition-all duration-300',
+            'relative w-full transition-all duration-300 ease-out backdrop-blur-xl origin-center',
             scrolled
-              ? 'px-6'
-              : 'px-10 lg:px-16'
+              ? 'mt-3 max-w-7xl rounded-2xl bg-[#0A0E27] shadow-lg shadow-black/20 scale-[0.98]'
+              : 'mt-0 max-w-full rounded-none bg-[#0A0E27] scale-100'
           )}
         >
-          {/* LEFT */}
-          <div className="flex items-center gap-4">
-            <Image src="/logo.png" alt="Xandeum" width={34} height={34} />
-            <span className="text-lg font-semibold text-white">
-              Xandeum
-            </span>
-
-            {totalCount > 0 && (
-              <div className="hidden md:flex items-center gap-2 ml-4 rounded-lg bg-blue-500/10 px-3 py-1.5">
-                <span
-                  className={cn(
-                    'h-2 w-2 rounded-full',
-                    onlineCount > 0 ? 'bg-emerald-400' : 'bg-gray-400'
-                  )}
-                />
-                <span className="text-xs text-slate-300">
-                  {onlineCount}/{totalCount} Online
-                </span>
-              </div>
+          {/* INNER CONTENT */}
+          <div
+            className={cn(
+              'flex h-16 items-center justify-between transition-all duration-300',
+              scrolled ? 'px-6' : 'px-10 lg:px-16'
             )}
-          </div>
+          >
+            {/* LEFT */}
+            <div className="flex items-center gap-4">
+              <Image src="/logo.png" alt="Xandeum" width={34} height={34} />
+              <span className="text-lg font-semibold text-white">
+                Xandeum
+              </span>
 
-          {/* DESKTOP NAV */}
-          <div className="hidden lg:flex items-center gap-8">
-            {navigation.map(({ name, href, icon: Icon }) => (
-              <Link
-                key={name}
-                href={href}
-                className={cn(
-                  'flex items-center gap-2 text-sm font-medium transition',
-                  pathname === href
-                    ? 'text-white'
-                    : 'text-slate-300 hover:text-white'
-                )}
-              >
-                <Icon className="h-4 w-4" />
-                {name}
-              </Link>
-            ))}
-
-            {/* TOOLS */}
-            <div className="relative">
-              <button
-                onClick={() => setMobileToolsOpen((o) => !o)}
-                className={cn(
-                  'flex items-center gap-2 text-sm font-medium transition',
-                  pathname.startsWith('/tools')
-                    ? 'text-white'
-                    : 'text-slate-300 hover:text-white'
-                )}
-              >
-                <Calculator className="h-4 w-4" />
-                Tools
-                <ChevronDown
-                  className={cn(
-                    'h-3 w-3 transition-transform',
-                    mobileToolsOpen && 'rotate-180'
-                  )}
-                />
-              </button>
-
-              {mobileToolsOpen && (
-                <div className="absolute right-0 mt-2 w-52 rounded-xl bg-[#111633]/95 backdrop-blur-xl shadow-2xl p-1">
-                  {tools.map(({ name, href, icon: Icon }) => (
-                    <Link
-                      key={name}
-                      href={href}
-                      onClick={() => setMobileToolsOpen(false)}
-                      className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition"
-                    >
-                      <Icon className="h-4 w-4" />
-                      {name}
-                    </Link>
-                  ))}
+              {totalCount > 0 && (
+                <div className="hidden md:flex items-center gap-2 ml-4 rounded-lg bg-blue-500/10 px-3 py-1.5">
+                  <span
+                    className={cn(
+                      'h-2 w-2 rounded-full',
+                      onlineCount > 0 ? 'bg-emerald-400' : 'bg-gray-400'
+                    )}
+                  />
+                  <span className="text-xs text-slate-300">
+                    {onlineCount}/{totalCount} Online
+                  </span>
                 </div>
               )}
             </div>
 
-            <ThemeToggle />
-          </div>
+            {/* DESKTOP NAV */}
+            <div className="hidden lg:flex items-center gap-8">
+              {navigation.map(({ name, href, icon: Icon }) => (
+                <Link
+                  key={name}
+                  href={href}
+                  className={cn(
+                    'flex items-center gap-2 text-sm font-medium transition',
+                    pathname === href
+                      ? 'text-white'
+                      : 'text-slate-300 hover:text-white'
+                  )}
+                >
+                  <Icon className="h-4 w-4" />
+                  {name}
+                </Link>
+              ))}
 
-          {/* MOBILE TOGGLE */}
-          <div className="lg:hidden flex items-center gap-2">
-            <ThemeToggle />
-            <button
-              onClick={() => setMobileOpen((o) => !o)}
-              className="relative h-8 w-8"
-            >
-              <span
-                className={cn(
-                  'absolute left-1/2 top-2 h-0.5 w-6 -translate-x-1/2 bg-white transition-all',
-                  mobileOpen && 'top-4 rotate-45'
+              {/* TOOLS */}
+              <div className="relative">
+                <button
+                  onClick={() => setMobileToolsOpen((o) => !o)}
+                  className={cn(
+                    'flex items-center gap-2 text-sm font-medium transition',
+                    pathname.startsWith('/tools')
+                      ? 'text-white'
+                      : 'text-slate-300 hover:text-white'
+                  )}
+                >
+                  <Calculator className="h-4 w-4" />
+                  Tools
+                  <ChevronDown
+                    className={cn(
+                      'h-3 w-3 transition-transform',
+                      mobileToolsOpen && 'rotate-180'
+                    )}
+                  />
+                </button>
+
+                {mobileToolsOpen && (
+                  <div className="absolute right-0 mt-2 w-52 rounded-xl bg-[#111633]/95 backdrop-blur-xl shadow-2xl p-1">
+                    {tools.map(({ name, href, icon: Icon }) => (
+                      <Link
+                        key={name}
+                        href={href}
+                        onClick={() => setMobileToolsOpen(false)}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-slate-300 hover:bg-white/5 hover:text-white transition"
+                      >
+                        <Icon className="h-4 w-4" />
+                        {name}
+                      </Link>
+                    ))}
+                  </div>
                 )}
-              />
-              <span
-                className={cn(
-                  'absolute left-1/2 top-4 h-0.5 w-6 -translate-x-1/2 bg-white transition-all',
-                  mobileOpen && 'opacity-0'
-                )}
-              />
-              <span
-                className={cn(
-                  'absolute left-1/2 top-6 h-0.5 w-6 -translate-x-1/2 bg-white transition-all',
-                  mobileOpen && 'top-4 -rotate-45'
-                )}
-              />
-            </button>
+              </div>
+
+              <ThemeToggle />
+            </div>
+
+            {/* MOBILE TOGGLE */}
+            <div className="lg:hidden flex items-center gap-2">
+              <ThemeToggle />
+              <button
+                onClick={() => setMobileOpen((o) => !o)}
+                className="relative h-8 w-8"
+              >
+                <span
+                  className={cn(
+                    'absolute left-1/2 top-2 h-0.5 w-6 -translate-x-1/2 bg-white transition-all',
+                    mobileOpen && 'top-4 rotate-45'
+                  )}
+                />
+                <span
+                  className={cn(
+                    'absolute left-1/2 top-4 h-0.5 w-6 -translate-x-1/2 bg-white transition-all',
+                    mobileOpen && 'opacity-0'
+                  )}
+                />
+                <span
+                  className={cn(
+                    'absolute left-1/2 top-6 h-0.5 w-6 -translate-x-1/2 bg-white transition-all',
+                    mobileOpen && 'top-4 -rotate-45'
+                  )}
+                />
+              </button>
+            </div>
           </div>
         </div>
       </div>
