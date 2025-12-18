@@ -8,7 +8,6 @@ import { Activity, Search, BarChart3, Bell, Calculator, GitCompare, ChevronDown 
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/utils';
 import { useNetworkStore } from '@/stores/networkStore';
-import { Badge } from '@/components/ui/badge';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: Activity },
@@ -48,43 +47,52 @@ export function Navbar() {
         scrolled ? 'max-w-6xl px-4' : 'max-w-full'
       )}>
         <div className={cn(
-          'backdrop-blur-lg border transition-all duration-500 ease-in-out',
-          'bg-background/80 shadow-lg px-4 sm:px-6 lg:px-8',
-          scrolled ? 'rounded-2xl border-border/40' : 'rounded-none border-b'
+          'backdrop-blur-xl transition-all duration-500 ease-in-out',
+          // Dark navy background from reference
+          'bg-[#0A0E27]/90 dark:bg-[#0A0E27]/90',
+          // NO BORDERS - removed completely
+          'shadow-lg shadow-black/20',
+          scrolled ? 'rounded-2xl' : 'rounded-none',
+          'px-6 lg:px-8'
         )}>
-          <div className="flex h-16 items-center justify-between">
-            {/* Logo & Status */}
+          {/* Subtle gradient overlay like reference */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-cyan-500/5 pointer-events-none rounded-inherit" />
+
+          <div className="relative flex h-16 items-center justify-between">
+            {/* Logo */}
             <div className="flex items-center gap-4">
               <Link 
                 href="/" 
                 className="flex items-center transition-all duration-200 hover:opacity-80 hover:scale-105"
               >
-                <Image 
-                  src="/logo.svg" 
-                  alt="Xandeum pNode Analytics"
-                  width={200} 
-                  height={48}
-                  className="h-9 w-auto"
-                  priority
-                />
+                <div className="relative h-10 w-32">
+                  <Image 
+                    src="https://static.wixstatic.com/media/ea731d_af14a4247e7f4b2c9ec3aaaccf5c6827~mv2.png"
+                    alt="Xandeum"
+                    fill
+                    className="object-contain"
+                    priority
+                  />
+                </div>
               </Link>
               
-              <Badge 
-                variant={onlineCount > 0 ? 'default' : 'secondary'} 
-                className="hidden md:flex items-center gap-2 transition-all duration-200 hover:scale-105"
-              >
-                <span className={cn(
-                  'h-2 w-2 rounded-full transition-all duration-300',
-                  onlineCount > 0 ? 'bg-green-500 animate-pulse shadow-lg shadow-green-500/50' : 'bg-gray-400'
-                )} />
-                <span className="font-medium">{onlineCount}/{totalCount}</span>
-                <span className="text-xs opacity-70">Online</span>
-              </Badge>
+              {/* Network Status - styled like reference */}
+              {totalCount > 0 && (
+                <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                  <span className={cn(
+                    'h-2 w-2 rounded-full',
+                    onlineCount > 0 ? 'bg-emerald-400 shadow-lg shadow-emerald-400/50' : 'bg-gray-500'
+                  )} />
+                  <span className="text-xs font-medium text-gray-300">
+                    {onlineCount}/{totalCount} Online
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Nav Links */}
-            <div className="flex items-center gap-2">
-              {navigation.map((item, index) => {
+            <div className="flex items-center gap-1">
+              {navigation.map((item) => {
                 const Icon = item.icon;
                 const isActive = pathname === item.href;
                 
@@ -93,25 +101,18 @@ export function Navbar() {
                     key={item.name}
                     href={item.href}
                     className={cn(
-                      'group relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                      'hover:scale-105 active:scale-95',
+                      'relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                       isActive
-                        ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                        ? 'text-white bg-gradient-to-r from-blue-500/20 to-purple-500/20 shadow-lg shadow-blue-500/10'
+                        : 'text-gray-400 hover:text-white hover:bg-white/5'
                     )}
-                    style={{
-                      animationDelay: `${index * 50}ms`
-                    }}
                   >
-                    <Icon className={cn(
-                      'h-4 w-4 transition-all duration-200',
-                      isActive && 'animate-pulse'
-                    )} />
+                    <Icon className="h-4 w-4" />
                     <span className="hidden lg:inline">{item.name}</span>
                     
-                    {/* Active indicator */}
+                    {/* Underline indicator instead of pulse */}
                     {isActive && (
-                      <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-primary rounded-full animate-in fade-in slide-in-from-bottom-2 duration-300" />
+                      <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full" />
                     )}
                   </Link>
                 );
@@ -125,34 +126,29 @@ export function Navbar() {
               >
                 <button
                   className={cn(
-                    'group relative flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200',
-                    'hover:scale-105 active:scale-95',
+                    'flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200',
                     toolsOpen || pathname.startsWith('/tools')
-                      ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20'
-                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                      ? 'text-white bg-gradient-to-r from-blue-500/20 to-purple-500/20 shadow-lg shadow-blue-500/10'
+                      : 'text-gray-400 hover:text-white hover:bg-white/5'
                   )}
                 >
-                  <Calculator className={cn(
-                    'h-4 w-4 transition-all duration-200',
-                    (toolsOpen || pathname.startsWith('/tools')) && 'animate-pulse'
-                  )} />
+                  <Calculator className="h-4 w-4" />
                   <span className="hidden lg:inline">Tools</span>
                   <ChevronDown className={cn(
                     'h-3 w-3 transition-transform duration-300',
                     toolsOpen && 'rotate-180'
                   )} />
                   
-                  {/* Active indicator */}
                   {pathname.startsWith('/tools') && (
-                    <span className="absolute -bottom-0.5 left-1/2 -translate-x-1/2 w-1/2 h-0.5 bg-primary rounded-full animate-in fade-in slide-in-from-bottom-2 duration-300" />
+                    <span className="absolute bottom-1 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full" />
                   )}
                 </button>
                 
                 {/* Dropdown Menu */}
                 {toolsOpen && (
-                  <div className="absolute right-0 mt-2 w-48 rounded-lg border bg-popover/95 backdrop-blur-lg shadow-xl animate-in fade-in-0 zoom-in-95 slide-in-from-top-2 duration-200">
+                  <div className="absolute right-0 mt-2 w-48 rounded-xl bg-[#1A1F3A]/95 backdrop-blur-xl border border-blue-500/10 shadow-2xl overflow-hidden">
                     <div className="p-1">
-                      {toolsDropdown.map((tool, index) => {
+                      {toolsDropdown.map((tool) => {
                         const Icon = tool.icon;
                         const isActive = pathname === tool.href;
                         return (
@@ -160,15 +156,11 @@ export function Navbar() {
                             key={tool.name}
                             href={tool.href}
                             className={cn(
-                              'flex items-center gap-3 px-3 py-2.5 text-sm rounded-md transition-all duration-200',
-                              'hover:scale-105 active:scale-95',
+                              'flex items-center gap-3 px-3 py-2.5 text-sm rounded-lg transition-all duration-200',
                               isActive 
-                                ? 'bg-primary text-primary-foreground shadow-sm'
-                                : 'hover:bg-muted'
+                                ? 'bg-gradient-to-r from-blue-500/20 to-purple-500/20 text-white'
+                                : 'text-gray-400 hover:text-white hover:bg-white/5'
                             )}
-                            style={{
-                              animationDelay: `${index * 50}ms`
-                            }}
                           >
                             <Icon className="h-4 w-4" />
                             <span className="font-medium">{tool.name}</span>
@@ -180,8 +172,8 @@ export function Navbar() {
                 )}
               </div>
 
-              {/* Theme Toggle with animation */}
-              <div className="ml-2 transition-all duration-200 hover:scale-110 active:scale-95">
+              {/* Theme Toggle */}
+              <div className="ml-2">
                 <ThemeToggle />
               </div>
             </div>
