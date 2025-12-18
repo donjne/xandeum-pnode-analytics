@@ -3,12 +3,17 @@ import { NextResponse } from 'next/server';
 
 export async function GET(
   _req: Request,
-  { params }: { params: { pubkey: string } }
+  context: { params: Promise<{ pubkey: string }> }
 ) {
   try {
-    const node = await findPNode(params.pubkey);
+    const { pubkey } = await context.params;
+
+    const node = await findPNode(pubkey);
     return NextResponse.json(node);
   } catch {
-    return NextResponse.json({ error: 'Not found' }, { status: 404 });
+    return NextResponse.json(
+      { error: 'Not found' },
+      { status: 404 }
+    );
   }
 }
