@@ -19,18 +19,19 @@ export default function ClientLayout({
       disableTransitionOnChange
     >
       <ClientErrorBoundary>
-        <div className="relative min-h-screen flex flex-col bg-background">
+        <div className="relative min-h-screen flex flex-col">
           <Navbar />
-          
-          {/* Main content with proper spacing for fixed navbar */}
-          <main className="flex-1 pt-24 pb-12">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-7xl">
+
+          {/* Main content owns the background */}
+          <main className="flex-1 pt-24 pb-12 bg-background">
+            <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
               {children}
             </div>
           </main>
-          
+
           <Footer />
         </div>
+
         <Toaster />
       </ClientErrorBoundary>
     </ThemeProvider>
