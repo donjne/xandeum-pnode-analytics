@@ -23,14 +23,17 @@ export default function ClientLayout({
         <div className="relative min-h-screen flex flex-col overflow-hidden">
           {/* Background layer */}
           <div className="pointer-events-none absolute inset-0">
-            {/* Base */}
-            <div className="absolute inset-0 bg-[#070B1A]" />
+            {/* LIGHT MODE BASE */}
+            <div className="absolute inset-0 bg-white dark:hidden" />
 
-            {/* Vertical depth */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0A0E27] via-[#070B1A] to-black" />
+            {/* DARK MODE BASE */}
+            <div className="absolute inset-0 hidden dark:block bg-[#070B1A]" />
 
-            {/* Radial glow (top center) */}
-            <div className="absolute top-[-20%] left-1/2 h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-blue-600/10 blur-[120px]" />
+            {/* DARK MODE DEPTH */}
+            <div className="absolute inset-0 hidden dark:block bg-gradient-to-b from-[#0A0E27] via-[#070B1A] to-black" />
+
+            {/* DARK MODE RADIAL GLOW */}
+            <div className="absolute top-[-20%] left-1/2 hidden h-[600px] w-[600px] -translate-x-1/2 rounded-full bg-blue-600/10 blur-[120px] dark:block" />
           </div>
 
           {/* App chrome */}

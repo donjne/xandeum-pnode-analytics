@@ -39,8 +39,10 @@ function Stat({
       </div>
 
       <div>
-        <div className="text-sm text-slate-400">{label}</div>
-        <div className="mt-0.5 text-3xl font-semibold tracking-tight text-white">
+        <div className="text-sm text-slate-500 dark:text-slate-400">
+          {label}
+        </div>
+        <div className="mt-0.5 text-3xl font-semibold tracking-tight text-slate-900 dark:text-white">
           {value}
         </div>
       </div>
@@ -49,7 +51,7 @@ function Stat({
 }
 
 /* ---------------------------------------------
-   Glass surface with right-side glow
+   Glass / Card surface with right-side glow
 --------------------------------------------- */
 function StatSurface({
   glow,
@@ -62,8 +64,10 @@ function StatSurface({
     <div
       className={cn(
         'relative overflow-hidden rounded-2xl p-6',
-        'bg-[#0A0E27]/80 backdrop-blur-xl',
-        'shadow-lg shadow-black/30',
+        // LIGHT MODE
+        'bg-white shadow-[0_12px_32px_rgba(0,0,0,0.08)]',
+        // DARK MODE
+        'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl dark:shadow-black/30',
         'transition-transform duration-300 ease-out',
         'hover:-translate-y-0.5'
       )}
