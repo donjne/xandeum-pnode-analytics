@@ -2,61 +2,40 @@ import { useEffect } from 'react';
 import { useNetworkStore } from '@/stores/networkStore';
 import { useAppStore } from '@/stores/appStore';
 
-/**
- * Hook to manage network data fetching and auto-refresh
- * 
- * Usage:
- * ```tsx
- * function MyComponent() {
- *   const { nodes, isLoading, error } = useNetwork();
- *   
- *   if (isLoading) return <Loading />;
- *   if (error) return <Error message={error} />;
- *   
- *   return <div>{nodes.length} nodes</div>;
- * }
- * ```
- */
 export function useNetwork() {
-  const networkState = useNetworkStore();
+  const network = useNetworkStore();
   const { settings } = useAppStore();
-  
-  // Initial fetch
+
   useEffect(() => {
-    if (networkState.nodes.length === 0) {
-      networkState.fetchNodes();
+    if (network.nodes.length === 0) {
+      network.fetchNodes();
     }
   }, []);
-  
-  // Auto-refresh based on settings
+
   useEffect(() => {
     if (!settings.autoRefresh) return;
-    
-    const interval = setInterval(() => {
-      networkState.refreshNodes();
-    }, settings.refreshInterval);
-    
-    return () => clearInterval(interval);
+
+    const id = setInterval(
+      network.refreshNodes,
+      settings.refreshInterval
+    );
+
+    return () => clearInterval(id);
   }, [settings.autoRefresh, settings.refreshInterval]);
-  
-  return networkState;
+
+  return network;
 }
 
-/**
- * Hook to fetch a specific node by pubkey
- */
 export function useNode(pubkey: string) {
-  const { nodes, isLoading, getNodeByPubkey } = useNetworkStore();
-  
-  // Ensure nodes are loaded
+  const { nodes, isLoading, getNodeByPubkey, fetchNodes } =
+    useNetworkStore();
+
   useEffect(() => {
-    if (nodes.length === 0) {
-      useNetworkStore.getState().fetchNodes();
-    }
+    if (nodes.length === 0) fetchNodes();
   }, [nodes.length]);
-  
+
   const node = getNodeByPubkey(pubkey);
-  
+
   return {
     node,
     isLoading: isLoading || (!node && nodes.length === 0),

@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { Metadata } from 'next';
 import { SearchBar, FilterPanel, PNodeGrid, PNodeTable, Pagination, FilterState } from '@/components/explorer';
 import { Button } from '@/components/ui/button';
 import { LayoutGrid, Table as TableIcon, Settings } from 'lucide-react';
