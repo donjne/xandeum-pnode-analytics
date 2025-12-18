@@ -107,11 +107,12 @@ export function NetworkHealth() {
   return (
     <Card
       className={cn(
-        'relative overflow-hidden rounded-2xl',
-        // light
+        'relative overflow-hidden rounded-2xl border border-transparent',
+        // light mode
         'bg-white shadow-[0_16px_40px_rgba(0,0,0,0.08)]',
-        // dark
-        'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl dark:shadow-black/30'
+        // dark mode separation (no white border)
+        'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl',
+        'dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]'
       )}
     >
       <CardHeader className="flex flex-row items-center justify-between">

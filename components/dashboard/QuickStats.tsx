@@ -8,6 +8,7 @@ import {
   TrendingUp,
   ChevronLeft,
   ChevronRight,
+  Wifi,
 } from 'lucide-react';
 import { useNetworkStore } from '@/stores/networkStore';
 import { formatBytes, formatNumber, formatPercentage } from '@/lib/utils';
@@ -112,7 +113,7 @@ function DesktopStats() {
         <Stat
           label="Online Nodes"
           value={`${onlineCount}/${totalCount}`}
-          icon={Activity}
+          icon={Wifi}
           color="bg-emerald-600"
         />
       </StatSurface>
