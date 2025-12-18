@@ -82,7 +82,7 @@ export function NetworkMap() {
         try {
           const ip = node.address.split(':')[0];
 
-          const res = await fetch(`/api/geolocation?ip=${ip}`);
+          const res = await fetch(`/api/geo?ip=${ip}`);
           if (!res.ok) continue;
 
           const data = await res.json();
@@ -137,12 +137,12 @@ export function NetworkMap() {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-lg">
             <Globe className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-            Geographic Distribution
+            Geography
           </CardTitle>
 
           <Badge className="bg-blue-500/15 text-blue-600 dark:text-blue-300">
             <MapPin className="h-3 w-3 mr-1" />
-            {onlineCount}/{totalCount} Online
+            {onlineCount}/{totalCount}
           </Badge>
         </div>
       </CardHeader>
