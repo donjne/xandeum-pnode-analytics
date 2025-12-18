@@ -51,7 +51,7 @@ export function Navbar() {
           className={cn(
             'relative w-full transition-all duration-300 ease-out backdrop-blur-xl origin-center',
             scrolled
-              ? 'mt-3 max-w-7xl rounded-2xl shadow-lg'
+              ? 'mt-3 max-w-5xl rounded-2xl shadow-lg'
               : 'mt-0 max-w-full rounded-none',
             // LIGHT
             'bg-white text-black shadow-black/10',

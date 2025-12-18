@@ -2,139 +2,100 @@
 
 import * as React from 'react';
 import dynamic from 'next/dynamic';
-import { MapPin, Globe, Loader2 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Globe, MapPin } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useNetworkStore } from '@/stores/networkStore';
 import { cn } from '@/lib/utils';
 
-// Dynamically import Leaflet components (client-side only)
+// leaflet (client-only)
 const MapContainer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.MapContainer),
-  { ssr: false, loading: () => <MapSkeleton /> }
+  () => import('react-leaflet').then((m) => m.MapContainer),
+  { ssr: false }
 );
 const TileLayer = dynamic(
-  () => import('react-leaflet').then((mod) => mod.TileLayer),
+  () => import('react-leaflet').then((m) => m.TileLayer),
   { ssr: false }
 );
 const CircleMarker = dynamic(
-  () => import('react-leaflet').then((mod) => mod.CircleMarker),
+  () => import('react-leaflet').then((m) => m.CircleMarker),
   { ssr: false }
 );
 const Popup = dynamic(
-  () => import('react-leaflet').then((mod) => mod.Popup),
+  () => import('react-leaflet').then((m) => m.Popup),
   { ssr: false }
 );
 
-function MapSkeleton() {
-  return (
-    <div className="h-[400px] bg-gradient-to-br from-blue-950/50 to-purple-950/50 rounded-lg flex items-center justify-center">
-      <div className="text-center space-y-3">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-400 mx-auto" />
-        <p className="text-sm text-white/60">Loading map...</p>
-      </div>
-    </div>
-  );
-}
+type GeoLocation = {
+  lat: number;
+  lng: number;
+  country: string;
+  city: string;
+};
 
 export function NetworkMap() {
-  const { nodes, isLoading, onlineCount, totalCount } = useNetworkStore();
-  const [geoLocations, setGeoLocations] = React.useState<Map<string, { lat: number; lng: number; country: string; city: string }>>(new Map());
-  const [isClient, setIsClient] = React.useState(false);
+  const { nodes, onlineCount, totalCount } = useNetworkStore();
+  const [locations, setLocations] = React.useState<
+    Map<string, GeoLocation>
+  >(new Map());
 
-  // Detect client-side rendering
+  // fetch only once
   React.useEffect(() => {
-    setIsClient(true);
-  }, []);
+    if (!nodes.length || locations.size > 0) return;
 
-  // Fetch geolocation for nodes
-  React.useEffect(() => {
-    if (nodes.length === 0) return;
+    const fetchGeo = async () => {
+      const onlineNodes = nodes.filter((n) => n.status === 'online').slice(0, 2);
 
-    const fetchLocations = async () => {
-      const newLocations = new Map(geoLocations);
-      let fetchedCount = 0;
-      const maxPerBatch = 10; // Rate limit: 10 requests per batch
-      
-      for (const node of nodes) {
-        if (geoLocations.has(node.pubkey)) continue;
-        if (fetchedCount >= maxPerBatch) break; // Prevent rate limiting
+      for (const node of onlineNodes) {
+        const ip = node.address.split(':')[0];
 
         try {
-          // Extract IP from address (format: "IP:PORT")
-          const ip = node.address.split(':')[0];
-          
-          // Use HTTPS ip-api.com for free geolocation
-          const response = await fetch(`https://ipapi.co/${ip}/json/`, {
-            headers: { 'User-Agent': 'XandeumAnalytics/1.0' }
-          });
-          
-          if (!response.ok) {
-            // Silent fail - don't spam console
-            continue;
+          const res = await fetch(`/api/geo?ip=${ip}`);
+          const data = await res.json();
+
+          if (data?.lat && data?.lng) {
+            setLocations((prev) =>
+              new Map(prev).set(node.pubkey, data)
+            );
           }
-          
-          const data = await response.json();
-          
-          if (data.latitude && data.longitude) {
-            newLocations.set(node.pubkey, {
-              lat: data.latitude,
-              lng: data.longitude,
-              country: data.country_name || 'Unknown',
-              city: data.city || 'Unknown',
-            });
-            fetchedCount++;
-          }
-          
-          // Small delay between requests to avoid rate limiting
-          await new Promise(resolve => setTimeout(resolve, 200));
-        } catch (error) {
-          // Silent fail for geo errors
-          continue;
+        } catch {
+          // silent fail — map still renders
         }
-      }
-      
-      if (newLocations.size > geoLocations.size) {
-        setGeoLocations(newLocations);
       }
     };
 
-    fetchLocations();
-  }, [nodes]);
+    fetchGeo();
+  }, [nodes, locations.size]);
 
-  // Calculate map center from node locations
-  const mapCenter: [number, number] = React.useMemo(() => {
-    if (geoLocations.size === 0) {
-      return [20, 0]; // Default world view
-    }
+  const nodesWithLocations = nodes.filter((n) =>
+    locations.has(n.pubkey)
+  );
 
-    const locations = Array.from(geoLocations.values());
-    const avgLat = locations.reduce((sum, loc) => sum + loc.lat, 0) / locations.length;
-    const avgLng = locations.reduce((sum, loc) => sum + loc.lng, 0) / locations.length;
-    
-    return [avgLat, avgLng];
-  }, [geoLocations]);
-
-  // Prepare nodes with locations
-  const nodesWithLocations = React.useMemo(() => {
-    return nodes
-      .map(node => ({
-        ...node,
-        location: geoLocations.get(node.pubkey),
-      }))
-      .filter(node => node.location); // Only nodes with known locations
-  }, [nodes, geoLocations]);
-
-  if (!isClient) {
-    return <MapSkeleton />;
-  }
+  const center: [number, number] =
+    nodesWithLocations.length > 0
+      ? [
+          locations.get(nodesWithLocations[0].pubkey)!.lat,
+          locations.get(nodesWithLocations[0].pubkey)!.lng,
+        ]
+      : [20, 0];
 
   return (
-    <Card className="relative overflow-hidden border-blue-500/20 bg-gradient-to-br from-blue-500/10 to-purple-500/10 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/20">
-      {/* Shimmer */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full animate-[shimmer_3s_infinite] pointer-events-none z-10" />
-      
-      <CardHeader className="relative z-20">
+    <Card
+      className={cn(
+        'relative overflow-hidden',
+        // glass surface — no border in dark mode
+        'bg-[#0A0E27]/80 backdrop-blur-xl',
+        'shadow-xl shadow-black/30',
+        'transition-all duration-300'
+      )}
+    >
+      <CardHeader>
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
@@ -142,137 +103,65 @@ export function NetworkMap() {
               Geographic Distribution
             </CardTitle>
             <CardDescription>
-              {nodesWithLocations.length > 0 
-                ? `${nodesWithLocations.length} nodes mapped across the globe`
-                : 'Loading node locations...'}
+              Sample node locations across the network
             </CardDescription>
           </div>
-          <Badge variant="outline" className="bg-blue-500/20 text-blue-300 border-blue-500/30">
+
+          <Badge className="bg-blue-500/20 text-blue-300">
             <MapPin className="h-3 w-3 mr-1" />
             {onlineCount}/{totalCount} Online
           </Badge>
         </div>
       </CardHeader>
 
-      <CardContent className="relative z-20">
-        <div className="rounded-lg overflow-hidden border border-white/10 shadow-2xl">
-          {nodesWithLocations.length === 0 ? (
-            // Placeholder when no locations yet
-            <div className="h-[400px] bg-gradient-to-br from-blue-950/50 to-purple-950/50 flex items-center justify-center">
-              <div className="text-center space-y-3">
-                <Globe className="h-16 w-16 text-blue-400/50 mx-auto animate-pulse" />
-                <div>
-                  <p className="text-white/80 font-medium">Discovering Node Locations</p>
-                  <p className="text-sm text-white/50 mt-1">
-                    {nodes.length > 0 
-                      ? `Geo-locating ${nodes.length} nodes...`
-                      : 'Waiting for network data...'}
-                  </p>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <MapContainer
-              center={mapCenter}
-              zoom={geoLocations.size === 1 ? 4 : 2}
-              style={{ height: '400px', width: '100%' }}
-              className="z-0"
-            >
-              <TileLayer
-                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-              />
-              
-              {nodesWithLocations.map((node) => {
-                if (!node.location) return null;
-                
-                const isOnline = node.status === 'online';
-                
-                return (
-                  <CircleMarker
-                    key={node.pubkey}
-                    center={[node.location.lat, node.location.lng]}
-                    radius={8}
-                    pathOptions={{
-                      fillColor: isOnline ? '#10b981' : '#6b7280',
-                      fillOpacity: 0.8,
-                      color: '#fff',
-                      weight: 2,
-                    }}
-                    eventHandlers={{
-                      mouseover: (e) => {
-                        e.target.setStyle({
-                          fillOpacity: 1,
-                          weight: 3,
-                        });
-                      },
-                      mouseout: (e) => {
-                        e.target.setStyle({
-                          fillOpacity: 0.8,
-                          weight: 2,
-                        });
-                      },
-                    }}
-                  >
-                    <Popup className="custom-popup">
-                      <div className="space-y-2 p-1 min-w-[200px]">
-                        <div className="flex items-center gap-2">
-                          <div className={cn(
-                            "h-3 w-3 rounded-full",
-                            isOnline ? "bg-emerald-400" : "bg-gray-400"
-                          )} />
-                          <span className="font-semibold text-sm">
-                            {node.pubkey.slice(0, 8)}...{node.pubkey.slice(-4)}
-                          </span>
-                        </div>
-                        
-                        <div className="space-y-1 text-xs text-gray-600">
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Location:</span>
-                            <span className="font-medium">{node.location.city}, {node.location.country}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Status:</span>
-                            <span className={cn(
-                              "font-medium",
-                              isOnline ? "text-emerald-600" : "text-gray-600"
-                            )}>
-                              {node.status}
-                            </span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Version:</span>
-                            <span className="font-medium">v{node.version}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Storage:</span>
-                            <span className="font-medium">{node.storage_usage_percent.toFixed(1)}%</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-500">Uptime:</span>
-                            <span className="font-medium">{(node.uptime / 3600).toFixed(0)}h</span>
-                          </div>
-                        </div>
+      <CardContent>
+        <div className="overflow-hidden rounded-xl shadow-inner">
+          <MapContainer
+            center={center}
+            zoom={nodesWithLocations.length ? 3 : 2}
+            style={{ height: 400, width: '100%' }}
+          >
+            <TileLayer
+              url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            />
+
+            {nodesWithLocations.map((node) => {
+              const loc = locations.get(node.pubkey);
+              if (!loc) return null;
+
+              return (
+                <CircleMarker
+                  key={node.pubkey}
+                  center={[loc.lat, loc.lng]}
+                  radius={8}
+                  pathOptions={{
+                    fillColor: '#10b981',
+                    fillOpacity: 0.85,
+                    color: '#ffffff',
+                    weight: 2,
+                  }}
+                >
+                  <Popup>
+                    <div className="space-y-1 text-sm">
+                      <div className="font-semibold">
+                        {node.pubkey.slice(0, 8)}…
                       </div>
-                    </Popup>
-                  </CircleMarker>
-                );
-              })}
-            </MapContainer>
-          )}
+                      <div className="text-xs text-gray-500">
+                        {loc.city}, {loc.country}
+                      </div>
+                    </div>
+                  </Popup>
+                </CircleMarker>
+              );
+            })}
+          </MapContainer>
         </div>
 
-        {/* Legend */}
-        <div className="mt-4 flex items-center justify-center gap-6 text-xs text-white/70">
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-emerald-500" />
-            <span>Online ({nodesWithLocations.filter(n => n.status === 'online').length})</span>
+        {locations.size < 2 && (
+          <div className="mt-3 text-xs text-white/50 text-center">
+            Showing locations
           </div>
-          <div className="flex items-center gap-2">
-            <div className="h-3 w-3 rounded-full bg-gray-500" />
-            <span>Offline ({nodesWithLocations.filter(n => n.status === 'offline').length})</span>
-          </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );
