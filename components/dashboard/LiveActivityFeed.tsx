@@ -1,7 +1,15 @@
 'use client';
 
 import * as React from 'react';
-import { Radio, CheckCircle2, AlertCircle, TrendingUp, HardDrive, Clock } from 'lucide-react';
+import {
+  Radio,
+  CheckCircle2,
+  AlertCircle,
+  TrendingUp,
+  HardDrive,
+  Clock,
+  Activity,
+} from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
