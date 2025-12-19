@@ -19,8 +19,11 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { cn } from '@/lib/utils';
 
-// Filter state for pNode explorer
+/* ---------------------------------------------
+   Types
+--------------------------------------------- */
 export interface FilterState {
   status: 'all' | 'online' | 'offline';
   version: string;
@@ -36,19 +39,26 @@ interface FilterPanelProps {
   availableVersions?: string[];
 }
 
-export function FilterPanel({ filters, onChange, availableVersions = [] }: FilterPanelProps) {
-  const [isOpen, setIsOpen] = React.useState(false);
+/* ---------------------------------------------
+   Component
+--------------------------------------------- */
+export function FilterPanel({
+  filters,
+  onChange,
+  availableVersions = [],
+}: FilterPanelProps) {
+  const [open, setOpen] = React.useState(false);
 
-  const activeFilterCount = React.useMemo(() => {
+  const activeCount = React.useMemo(() => {
     let count = 0;
     if (filters.status !== 'all') count++;
-    if (filters.version !== 'all') count++;
+    if (filters.version && filters.version !== 'all') count++;
     if (filters.minStorage > 0) count++;
     if (filters.maxStorage < Infinity) count++;
     return count;
   }, [filters]);
 
-  const handleReset = () => {
+  const resetFilters = () => {
     onChange({
       status: 'all',
       version: 'all',
@@ -60,50 +70,73 @@ export function FilterPanel({ filters, onChange, availableVersions = [] }: Filte
   };
 
   return (
-    <div className="flex items-center gap-2">
-      {/* Sort dropdown */}
+    <div className="flex items-center gap-2 flex-wrap">
+      {/* -----------------------------------------
+          Sort
+      ----------------------------------------- */}
       <Select
         value={`${filters.sortBy}-${filters.sortOrder}`}
-        onValueChange={(value) => {
-          const [sortBy, sortOrder] = value.split('-') as [FilterState['sortBy'], FilterState['sortOrder']];
+        onValueChange={(v) => {
+          const [sortBy, sortOrder] = v.split('-') as [
+            FilterState['sortBy'],
+            FilterState['sortOrder']
+          ];
           onChange({ ...filters, sortBy, sortOrder });
         }}
       >
-        <SelectTrigger className="w-[180px]">
-          <SelectValue placeholder="Sort by" />
+        <SelectTrigger className="w-[190px]">
+          <SelectValue placeholder="Sort" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="health-desc">Health (High to Low)</SelectItem>
-          <SelectItem value="health-asc">Health (Low to High)</SelectItem>
-          <SelectItem value="storage-desc">Storage (High to Low)</SelectItem>
-          <SelectItem value="storage-asc">Storage (Low to High)</SelectItem>
-          <SelectItem value="uptime-desc">Uptime (High to Low)</SelectItem>
-          <SelectItem value="uptime-asc">Uptime (Low to High)</SelectItem>
-          <SelectItem value="version-desc">Version (Newest First)</SelectItem>
-          <SelectItem value="version-asc">Version (Oldest First)</SelectItem>
+          <SelectItem value="health-desc">Health · High → Low</SelectItem>
+          <SelectItem value="health-asc">Health · Low → High</SelectItem>
+          <SelectItem value="storage-desc">Storage · High → Low</SelectItem>
+          <SelectItem value="storage-asc">Storage · Low → High</SelectItem>
+          <SelectItem value="uptime-desc">Uptime · High → Low</SelectItem>
+          <SelectItem value="uptime-asc">Uptime · Low → High</SelectItem>
+          <SelectItem value="version-desc">Version · Newest</SelectItem>
+          <SelectItem value="version-asc">Version · Oldest</SelectItem>
         </SelectContent>
       </Select>
 
-      {/* Advanced filters dropdown */}
-      <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      {/* -----------------------------------------
+          Filters Dropdown
+      ----------------------------------------- */}
+      <DropdownMenu open={open} onOpenChange={setOpen}>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline">
-            <Filter className="mr-2 h-4 w-4" />
+          <Button
+            variant="outline"
+            className={cn(
+              'gap-2',
+              activeCount > 0 && 'border-blue-500/40'
+            )}
+          >
+            <Filter className="h-4 w-4" />
             Filters
-            {activeFilterCount > 0 && (
-              <Badge variant="secondary" className="ml-2 h-5 w-5 rounded-full p-0">
-                {activeFilterCount}
+            {activeCount > 0 && (
+              <Badge className="ml-1 h-5 w-5 rounded-full p-0 text-xs">
+                {activeCount}
               </Badge>
             )}
-            <ChevronDown className="ml-2 h-4 w-4" />
+            <ChevronDown className="h-4 w-4 opacity-60" />
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-80 p-4">
-          <div className="space-y-4">
+
+        <DropdownMenuContent
+          align="end"
+          className={cn(
+            'w-[320px] rounded-xl p-4',
+            'bg-white shadow-[0_16px_40px_rgba(0,0,0,0.12)]',
+            'dark:bg-[#0A0E27]/95 dark:backdrop-blur-xl',
+            'dark:shadow-[0_20px_60px_rgba(0,0,0,0.5)]'
+          )}
+        >
+          <div className="space-y-5">
+            {/* Header */}
             <div className="flex items-center justify-between">
-              <h4 className="font-medium">Filters</h4>
-              {activeFilterCount > 0 && (
-                <Button variant="ghost" size="sm" onClick={handleReset}>
+              <span className="text-sm font-medium">Filters</span>
+              {activeCount > 0 && (
+                <Button variant="ghost" size="sm" onClick={resetFilters}>
                   Reset
                 </Button>
               )}
@@ -111,42 +144,42 @@ export function FilterPanel({ filters, onChange, availableVersions = [] }: Filte
 
             <Separator />
 
-            {/* Status filter */}
+            {/* Status */}
             <div className="space-y-2">
               <Label>Status</Label>
               <Select
                 value={filters.status}
-                onValueChange={(value) =>
-                  onChange({ ...filters, status: value as FilterState['status'] })
+                onValueChange={(v) =>
+                  onChange({ ...filters, status: v as FilterState['status'] })
                 }
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Nodes</SelectItem>
-                  <SelectItem value="online">Online Only</SelectItem>
-                  <SelectItem value="offline">Offline Only</SelectItem>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="online">Online</SelectItem>
+                  <SelectItem value="offline">Offline</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Version filter */}
+            {/* Version */}
             {availableVersions.length > 0 && (
               <div className="space-y-2">
                 <Label>Version</Label>
                 <Select
                   value={filters.version}
-                  onValueChange={(value) => onChange({ ...filters, version: value })}
+                  onValueChange={(v) => onChange({ ...filters, version: v })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Versions</SelectItem>
-                    {availableVersions.map((version) => (
-                      <SelectItem key={version} value={version}>
-                        v{version}
+                    <SelectItem value="all">All</SelectItem>
+                    {availableVersions.map((v) => (
+                      <SelectItem key={v} value={v}>
+                        v{v}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -154,9 +187,9 @@ export function FilterPanel({ filters, onChange, availableVersions = [] }: Filte
               </div>
             )}
 
-            {/* Storage range */}
+            {/* Storage */}
             <div className="space-y-2">
-              <Label>Storage Range (GB)</Label>
+              <Label>Storage (GB)</Label>
               <div className="flex gap-2">
                 <Input
                   type="number"
@@ -186,27 +219,24 @@ export function FilterPanel({ filters, onChange, availableVersions = [] }: Filte
         </DropdownMenuContent>
       </DropdownMenu>
 
-      {/* Active filter badges */}
-      {activeFilterCount > 0 && (
-        <div className="flex items-center gap-2">
+      {/* -----------------------------------------
+          Active Filter Pills
+      ----------------------------------------- */}
+      {activeCount > 0 && (
+        <div className="flex items-center gap-2 flex-wrap">
           {filters.status !== 'all' && (
             <Badge variant="secondary" className="gap-1">
               {filters.status}
-              <button
-                onClick={() => onChange({ ...filters, status: 'all' })}
-                className="ml-1 rounded-full hover:bg-muted"
-              >
+              <button onClick={() => onChange({ ...filters, status: 'all' })}>
                 <X className="h-3 w-3" />
               </button>
             </Badge>
           )}
-          {filters.version !== 'all' && (
+
+          {filters.version && filters.version !== 'all' && (
             <Badge variant="secondary" className="gap-1">
               v{filters.version}
-              <button
-                onClick={() => onChange({ ...filters, version: 'all' })}
-                className="ml-1 rounded-full hover:bg-muted"
-              >
+              <button onClick={() => onChange({ ...filters, version: 'all' })}>
                 <X className="h-3 w-3" />
               </button>
             </Badge>

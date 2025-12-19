@@ -46,12 +46,12 @@ export function Navbar() {
 
   return (
     <nav className="fixed inset-x-0 top-0 z-50">
-      <div className="flex w-full justify-center">
+      <div className="flex w-full justify-center px-3 sm:px-0">
         <div
           className={cn(
             'relative w-full transition-all duration-300 ease-out backdrop-blur-xl origin-center',
             scrolled
-              ? 'mt-3 max-w-5xl rounded-2xl shadow-lg'
+              ? 'mt-3 max-w-7xl rounded-2xl shadow-lg'
               : 'mt-0 max-w-full rounded-none',
             // LIGHT
             'bg-white text-black shadow-black/10',

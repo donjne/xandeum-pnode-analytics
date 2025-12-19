@@ -26,7 +26,7 @@ export function PNodeGrid({
     return <LoadingSpinner text="Loading pNodes..." />;
   }
 
-  if (nodes.length === 0) {
+  if (!nodes || nodes.length === 0) {
     return (
       <EmptyState
         icon={Server}
@@ -37,25 +37,34 @@ export function PNodeGrid({
   }
 
   return (
-    <div className="space-y-4">
-      {/* View mode toggle */}
+    <section className="space-y-6">
+      {/* View Mode Toggle (only when controlled) */}
       {onViewModeChange && (
         <div className="flex justify-end">
-          <div className="inline-flex rounded-lg border p-1">
+          <div
+            className={cn(
+              'inline-flex items-center gap-1 rounded-xl p-1',
+              // light mode
+              'bg-muted/60',
+              // dark mode
+              'dark:bg-white/5'
+            )}
+          >
             <Button
-              variant={viewMode === 'grid' ? 'default' : 'ghost'}
+              variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => onViewModeChange('grid')}
-              className="h-8 gap-2"
+              className="h-8 gap-2 rounded-lg"
             >
               <Grid3x3 className="h-4 w-4" />
               Grid
             </Button>
+
             <Button
-              variant={viewMode === 'list' ? 'default' : 'ghost'}
+              variant={viewMode === 'list' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => onViewModeChange('list')}
-              className="h-8 gap-2"
+              className="h-8 gap-2 rounded-lg"
             >
               <List className="h-4 w-4" />
               List
@@ -64,11 +73,19 @@ export function PNodeGrid({
         </div>
       )}
 
-      {/* Grid/List view */}
+      {/* Grid / List */}
       <div
         className={cn(
           viewMode === 'grid'
-            ? 'grid gap-4 md:grid-cols-2 lg:grid-cols-3'
+            ? [
+                // mobile
+                'grid gap-4',
+                // tablet
+                'sm:grid-cols-2',
+                // desktop
+                'lg:grid-cols-3',
+                'xl:grid-cols-3',
+              ].join(' ')
             : 'space-y-4'
         )}
       >
@@ -76,6 +93,6 @@ export function PNodeGrid({
           <PNodeCard key={node.pubkey} node={node} />
         ))}
       </div>
-    </div>
+    </section>
   );
 }

@@ -138,7 +138,7 @@ export function TopPerformers() {
           className="bg-slate-100 text-slate-700 border-transparent dark:bg-white/10 dark:text-white"
         >
           <CircleDot className="mr-1 h-3 w-3" />
-          Live
+          now
         </Badge>
       </CardHeader>
 
