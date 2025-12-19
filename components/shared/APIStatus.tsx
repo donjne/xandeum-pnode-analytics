@@ -100,11 +100,12 @@ export default function ExplorerPage() {
   }, [nodes, search, filters]);
 
   // Pagination
-  const totalPages = Math.ceil(filteredNodes.length / pageSize);
-  const paginatedNodes = filteredNodes.slice(
+  const totalPages = Math.ceil((filteredNodes?.length ?? 0) / pageSize);
+  const paginatedNodes = filteredNodes?.slice(
     (page - 1) * pageSize,
     page * pageSize
-  );
+  ) ?? [];
+
 
   // Reset page when filters change
   React.useEffect(() => {

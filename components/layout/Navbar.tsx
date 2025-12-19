@@ -46,7 +46,12 @@ export function Navbar() {
 
   return (
     <nav className="fixed inset-x-0 top-0 z-50">
-      <div className="flex w-full justify-center px-3 sm:px-0">
+      <div
+          className={cn(
+            'flex w-full justify-center transition-all',
+            scrolled ? 'px-3 sm:px-0' : 'px-0'
+          )}
+        >
         <div
           className={cn(
             'relative w-full transition-all duration-300 ease-out backdrop-blur-xl origin-center',

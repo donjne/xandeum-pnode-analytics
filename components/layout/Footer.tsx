@@ -4,7 +4,7 @@ import Link from 'next/link';
 
 export function Footer() {
   return (
-    <footer className="bg-[#0A0E27]/85 dark:bg-[#0A0E27]/85 bg-white/80 backdrop-blur-xl">
+    <footer className="dark:bg-[#0A0E27]/85 bg-white/80 backdrop-blur-xl">
       <div className="mx-auto max-w-7xl px-6 py-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm">
         <p className="text-slate-500 dark:text-slate-400">
           © 2025 Xandeum Network

@@ -23,7 +23,9 @@ import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 export default function ExplorerClient() {
-  const { nodes = [], isLoading } = useNetwork(); // ⬅️ defensive default
+  const { nodes: rawNodes, isLoading } = useNetwork();
+  const nodes = rawNodes ?? [];
+
 
   const [search, setSearch] = React.useState('');
   const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid');
@@ -128,11 +130,12 @@ export default function ExplorerClient() {
     );
   }
 
-  const totalPages = Math.ceil(filteredNodes.length / pageSize);
-  const paginatedNodes = filteredNodes.slice(
+  const totalPages = Math.ceil((filteredNodes?.length ?? 0) / pageSize);
+  const paginatedNodes = filteredNodes?.slice(
     (page - 1) * pageSize,
     page * pageSize
-  );
+  ) ?? [];
+
 
   return (
     <section className="space-y-6">
@@ -222,7 +225,7 @@ export default function ExplorerClient() {
             currentPage={page}
             totalPages={totalPages}
             pageSize={pageSize}
-            totalItems={filteredNodes.length}
+            totalItems={filteredNodes?.length ?? 0}
             onPageChange={setPage}
             onPageSizeChange={(size) => {
               setPageSize(size);
