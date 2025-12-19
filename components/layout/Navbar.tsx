@@ -12,6 +12,7 @@ import {
   GitCompare,
   ChevronDown,
   LayoutDashboard,
+  BrainCircuit,
 } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { cn } from '@/lib/utils';
@@ -119,7 +120,7 @@ export function Navbar() {
                       : 'text-slate-600 hover:text-black dark:text-slate-300 dark:hover:text-white'
                   )}
                 >
-                  <Calculator className="h-4 w-4" />
+                  <BrainCircuit className="h-4 w-4" />
                   Tools
                   <ChevronDown
                     className={cn(
