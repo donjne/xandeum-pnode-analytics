@@ -146,7 +146,7 @@ export default function CompareClient() {
                 forceMount
                 onOpenAutoFocus={(e) => e.preventDefault()}
                 className="
-                  z-50
+                  z-100
                   w-full p-0
                   bg-white text-slate-900
                   border border-slate-200 shadow-xl
