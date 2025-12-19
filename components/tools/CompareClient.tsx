@@ -1,7 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { GitCompare, ChevronsUpDown, X, Check } from 'lucide-react';
+import { GitCompare, X } from 'lucide-react';
+
+import { useNetworkReady } from '@/hooks/use-network-ready';
+import { PNode } from '@/lib/types/pnode';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -11,56 +14,33 @@ import {
   CardHeader,
 } from '@/components/ui/card';
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from '@/components/ui/command';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
 import { EmptyState } from '@/components/shared/EmptyState';
 import { ComparisonTable } from '@/components/tools/ComparisonTable';
-import { PNode } from '@/lib/types/pnode';
-import { useNetworkReady } from '@/hooks/use-network-ready';
 
 /* ---------------------------------------------
    Helpers
 --------------------------------------------- */
-function safePubkey(pubkey?: string | null) {
-  return typeof pubkey === 'string' ? pubkey : '';
+function truncatePubkey(pubkey?: string | null) {
+  if (!pubkey) return '—';
+  return `${pubkey.slice(0, 8)}...${pubkey.slice(-4)}`;
 }
 
 export default function CompareClient() {
+  /**
+   * IMPORTANT:
+   * This hook guarantees nodes are fetched
+   * even if user lands directly on /compare
+   */
   const { nodes, isLoading } = useNetworkReady();
 
   const [selectedNodes, setSelectedNodes] = React.useState<PNode[]>([]);
-  const [open, setOpen] = React.useState(false);
-
-  const handleAddNode = (node: PNode) => {
-    setSelectedNodes((prev) => {
-      if (
-        prev.length >= 5 ||
-        prev.some((n) => n.pubkey === node.pubkey)
-      ) {
-        return prev;
-      }
-      return [...prev, node];
-    });
-    setOpen(false);
-  };
-
-  const handleRemoveNode = (pubkey?: string | null) => {
-    if (!pubkey) return;
-    setSelectedNodes((prev) =>
-      prev.filter((n) => n.pubkey !== pubkey)
-    );
-  };
-
-  const handleClearAll = () => setSelectedNodes([]);
 
   const availableNodes = React.useMemo(() => {
     if (!Array.isArray(nodes)) return [];
@@ -71,11 +51,28 @@ export default function CompareClient() {
     );
   }, [nodes, selectedNodes]);
 
+  const handleAddNode = (pubkey: string) => {
+    const node = availableNodes.find((n) => n.pubkey === pubkey);
+    if (!node) return;
+
+    if (selectedNodes.length < 5) {
+      setSelectedNodes((prev) => [...prev, node]);
+    }
+  };
+
+  const handleRemoveNode = (pubkey: string) => {
+    setSelectedNodes((prev) =>
+      prev.filter((n) => n.pubkey !== pubkey)
+    );
+  };
+
+  const handleClearAll = () => setSelectedNodes([]);
+
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header */}
+      {/* Page Header */}
       <div className="space-y-2">
-        <h1 className="flex items-center gap-2 text-3xl font-bold sm:text-4xl">
+        <h1 className="flex items-center gap-2 text-3xl font-bold tracking-tight sm:text-4xl">
           <GitCompare className="h-8 w-8" />
           Node Comparison
         </h1>
@@ -84,7 +81,7 @@ export default function CompareClient() {
         </p>
       </div>
 
-      {/* Selector */}
+      {/* Node Selector */}
       <Card>
         <CardHeader className="pb-2">
           <CardDescription>
@@ -93,106 +90,75 @@ export default function CompareClient() {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Selected */}
+          {/* Selected Nodes */}
           {selectedNodes.length > 0 && (
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-medium">Selected nodes</p>
-                <Button variant="ghost" size="sm" onClick={handleClearAll}>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearAll}
+                >
                   Clear all
                 </Button>
               </div>
 
               <div className="flex flex-wrap gap-2">
-                {selectedNodes.map((node) => {
-                  const key = safePubkey(node.pubkey);
-                  return (
-                    <div
-                      key={key}
-                      className="flex items-center gap-2 rounded-md border bg-muted px-3 py-1.5 text-sm"
+                {selectedNodes.map((node) => (
+                  <div
+                    key={node.pubkey}
+                    className="flex items-center gap-2 rounded-md border bg-muted px-3 py-1.5 text-sm"
+                  >
+                    <span className="font-mono">
+                      {truncatePubkey(node.pubkey)}
+                    </span>
+                    <button
+                      onClick={() => handleRemoveNode(node.pubkey)}
+                      className="text-muted-foreground hover:text-foreground"
                     >
-                      <span className="font-mono">
-                        {key.slice(0, 8)}…{key.slice(-4)}
-                      </span>
-                      <button
-                        onClick={() => handleRemoveNode(node.pubkey)}
-                        className="text-muted-foreground hover:text-foreground"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  );
-                })}
+                      <X className="h-3 w-3" />
+                    </button>
+                  </div>
+                ))}
               </div>
             </div>
           )}
 
-          {/* Add Node */}
+          {/* Add Node Select */}
           {selectedNodes.length < 5 && (
-            <Popover open={open} onOpenChange={setOpen} modal={false}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-between"
-                  disabled={isLoading}
-                >
-                  {isLoading ? 'Loading nodes…' : 'Select a node to add…'}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
-                </Button>
-              </PopoverTrigger>
+            <Select onValueChange={handleAddNode}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select a node to add…" />
+              </SelectTrigger>
 
-              <PopoverContent
-                align="start"
-                forceMount
-                onOpenAutoFocus={(e) => e.preventDefault()}
+              <SelectContent
                 className="
-                  z-100
-                  w-full p-0
                   bg-white text-slate-900
-                  border border-slate-200 shadow-xl
-                  dark:bg-[#0F1535] dark:text-slate-100 dark:border-white/10
+                  dark:bg-[#0F1535] dark:text-slate-100
                 "
               >
-                <Command>
-                  <CommandInput placeholder="Search nodes…" />
-                  <CommandEmpty>No nodes found.</CommandEmpty>
-
-                  <CommandGroup className="max-h-64 overflow-y-auto">
-                    {availableNodes.map((node) => {
-                      const key = safePubkey(node.pubkey);
-
-                      return (
-                        <CommandItem
-                          key={key}
-                          value={key}
-                          onSelect={(value) => {
-                            const found = availableNodes.find(
-                              (n) => n.pubkey === value
-                            );
-                            if (found) handleAddNode(found);
-                          }}
-                          className="
-                            cursor-pointer
-                            focus:bg-blue-500/10
-                            dark:focus:bg-blue-500/20
-                          "
-                        >
-                          <Check className="mr-2 h-4 w-4 opacity-0" />
-                          <span className="font-mono text-sm">
-                            {key.slice(0, 12)}…{key.slice(-8)}
-                          </span>
-                        </CommandItem>
-                      );
-                    })}
-                  </CommandGroup>
-                </Command>
-              </PopoverContent>
-            </Popover>
+                {availableNodes.length === 0 ? (
+                  <div className="px-3 py-2 text-sm text-muted-foreground">
+                    {isLoading ? 'Loading nodes…' : 'No nodes available'}
+                  </div>
+                ) : (
+                  availableNodes.map((node) => (
+                    <SelectItem key={node.pubkey} value={node.pubkey}>
+                      <span className="font-mono text-sm">
+                        {node.pubkey.slice(0, 12)}...
+                        {node.pubkey.slice(-8)}
+                      </span>
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
           )}
         </CardContent>
       </Card>
 
-      {/* Comparison */}
+      {/* Comparison Table */}
       {selectedNodes.length === 0 ? (
         <EmptyState
           icon={GitCompare}
