@@ -32,9 +32,13 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
   usedStorage: 0,
 
   fetchNodes: async () => {
-    // Don't show loading if we already have data (background refresh)
-    const hasData = get().nodes.length > 0;
-    
+    const { nodes, isLoading } = get();
+
+    // prevent duplicate fetches
+    if (isLoading) return;
+
+    const hasData = nodes.length > 0;
+
     if (!hasData) {
       set({ isLoading: true, error: null });
     }
@@ -78,7 +82,6 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
         lastUpdated: Date.now(),
       });
     } catch (err: any) {
-      // Only set error if we don't have data (background refresh failure is silent)
       if (!hasData) {
         set({
           error: err.message ?? 'Failed to fetch pNodes',
@@ -94,6 +97,7 @@ export const useNetworkStore = create<NetworkState>((set, get) => ({
       }
     }
   },
+
 
   refreshNodes: async () => {
     await get().fetchNodes();
