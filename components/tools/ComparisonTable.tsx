@@ -1,83 +1,106 @@
 'use client';
 
 import { PNode } from '@/lib/types';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Card, CardContent, CardDescription, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { formatBytes, formatDuration, formatPubkey, formatPercentage } from '@/lib/utils';
+import {
+  formatBytes,
+  formatDuration,
+  formatPercentage,
+} from '@/lib/utils';
 import { calculateHealthScore, getHealthCategory } from '@/lib/utils';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { GitCompare } from 'lucide-react';
+
+/* ---------------------------------------------
+   Helpers
+--------------------------------------------- */
+function safePubkey(pubkey?: string | null) {
+  return typeof pubkey === 'string' ? pubkey : '';
+}
 
 interface ComparisonTableProps {
   nodes: PNode[];
 }
 
 export function ComparisonTable({ nodes }: ComparisonTableProps) {
-  if (nodes.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <GitCompare className="h-5 w-5" />
-            <CardTitle>Node Comparison</CardTitle>
-          </div>
-          <CardDescription>Select up to 5 pNodes to compare side-by-side</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-sm text-muted-foreground">No nodes selected</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-center gap-2">
-          <GitCompare className="h-5 w-5" />
-          <CardTitle>Node Comparison</CardTitle>
-        </div>
-        <CardDescription>Comparing {nodes.length} pNode(s)</CardDescription>
+      <CardHeader className="pb-2">
+        <CardDescription>
+          Comparing {nodes.length} pNode{nodes.length > 1 ? 's' : ''}
+        </CardDescription>
       </CardHeader>
+
       <CardContent>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[200px]">Metric</TableHead>
-                {nodes.map((node) => (
-                  <TableHead key={node.pubkey} className="min-w-[150px]">
-                    <div className="space-y-1">
-                      <p className="font-mono text-xs">{formatPubkey(node.pubkey, 6)}</p>
-                    </div>
-                  </TableHead>
-                ))}
+                <TableHead className="sticky left-0 z-10 bg-background w-[180px]">
+                  Metric
+                </TableHead>
+                {nodes.map((node) => {
+                  const key = safePubkey(node.pubkey);
+                  return (
+                    <TableHead
+                      key={key || `${node.address}-${node.rpc_port}`}
+                      className="min-w-[160px]"
+                    >
+                      <p className="font-mono text-xs">
+                        {key
+                          ? `${key.slice(0, 6)}...${key.slice(-4)}`
+                          : '—'}
+                      </p>
+                    </TableHead>
+                  );
+                })}
               </TableRow>
             </TableHeader>
+
             <TableBody>
               {/* Status */}
               <TableRow>
-                <TableCell className="font-medium">Status</TableCell>
+                <TableCell className="sticky left-0 bg-background font-medium">
+                  Status
+                </TableCell>
                 {nodes.map((node) => {
                   const now = Math.floor(Date.now() / 1000);
-                  const isOnline = now - node.last_seen_timestamp < 120;
+                  const online =
+                    typeof node.last_seen_timestamp === 'number' &&
+                    now - node.last_seen_timestamp < 120;
+
                   return (
-                    <TableCell key={node.pubkey}>
-                      <StatusBadge status={isOnline ? 'online' : 'offline'} />
+                    <TableCell
+                      key={safePubkey(node.pubkey) || node.address}
+                    >
+                      <StatusBadge
+                        status={online ? 'online' : 'offline'}
+                      />
                     </TableCell>
                   );
                 })}
               </TableRow>
 
-              {/* Health Score */}
+              {/* Health */}
               <TableRow>
-                <TableCell className="font-medium">Health Score</TableCell>
+                <TableCell className="sticky left-0 bg-background font-medium">
+                  Health
+                </TableCell>
                 {nodes.map((node) => {
                   const score = calculateHealthScore(node);
                   const category = getHealthCategory(score);
                   return (
-                    <TableCell key={node.pubkey}>
+                    <TableCell
+                      key={safePubkey(node.pubkey) || node.address}
+                    >
                       <Badge
                         variant={
                           category === 'excellent'
@@ -98,43 +121,57 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Version */}
               <TableRow>
-                <TableCell className="font-medium">Version</TableCell>
+                <TableCell className="sticky left-0 bg-background font-medium">
+                  Version
+                </TableCell>
                 {nodes.map((node) => (
-                  <TableCell key={node.pubkey} className="font-mono text-sm">
-                    {node.version}
+                  <TableCell
+                    key={safePubkey(node.pubkey) || node.address}
+                    className="font-mono text-sm"
+                  >
+                    {node.version ?? '—'}
                   </TableCell>
                 ))}
               </TableRow>
 
               {/* Uptime */}
               <TableRow>
-                <TableCell className="font-medium">Uptime</TableCell>
+                <TableCell className="sticky left-0 bg-background font-medium">
+                  Uptime
+                </TableCell>
                 {nodes.map((node) => (
-                  <TableCell key={node.pubkey}>{formatDuration(node.uptime)}</TableCell>
+                  <TableCell
+                    key={safePubkey(node.pubkey) || node.address}
+                  >
+                    {formatDuration(node.uptime)}
+                  </TableCell>
                 ))}
               </TableRow>
 
-              {/* Storage Committed */}
+              {/* Storage */}
               <TableRow>
-                <TableCell className="font-medium">Storage Committed</TableCell>
+                <TableCell className="sticky left-0 bg-background font-medium">
+                  Storage Used
+                </TableCell>
                 {nodes.map((node) => (
-                  <TableCell key={node.pubkey}>{formatBytes(node.storage_committed)}</TableCell>
+                  <TableCell
+                    key={safePubkey(node.pubkey) || node.address}
+                  >
+                    {formatBytes(node.storage_used)} /{' '}
+                    {formatBytes(node.storage_committed)}
+                  </TableCell>
                 ))}
               </TableRow>
 
-              {/* Storage Used */}
+              {/* Utilization */}
               <TableRow>
-                <TableCell className="font-medium">Storage Used</TableCell>
+                <TableCell className="sticky left-0 bg-background font-medium">
+                  Utilization
+                </TableCell>
                 {nodes.map((node) => (
-                  <TableCell key={node.pubkey}>{formatBytes(node.storage_used)}</TableCell>
-                ))}
-              </TableRow>
-
-              {/* Storage Utilization */}
-              <TableRow>
-                <TableCell className="font-medium">Utilization</TableCell>
-                {nodes.map((node) => (
-                  <TableCell key={node.pubkey}>
+                  <TableCell
+                    key={safePubkey(node.pubkey) || node.address}
+                  >
                     {formatPercentage(node.storage_usage_percent, 1)}
                   </TableCell>
                 ))}
@@ -142,19 +179,16 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Address */}
               <TableRow>
-                <TableCell className="font-medium">Address</TableCell>
+                <TableCell className="sticky left-0 bg-background font-medium">
+                  Address
+                </TableCell>
                 {nodes.map((node) => (
-                  <TableCell key={node.pubkey} className="font-mono text-xs">
-                    {node.address}
+                  <TableCell
+                    key={safePubkey(node.pubkey) || node.address}
+                    className="font-mono text-xs"
+                  >
+                    {node.address ?? '—'}
                   </TableCell>
-                ))}
-              </TableRow>
-
-              {/* RPC Port */}
-              <TableRow>
-                <TableCell className="font-medium">RPC Port</TableCell>
-                {nodes.map((node) => (
-                  <TableCell key={node.pubkey}>{node.rpc_port}</TableCell>
                 ))}
               </TableRow>
             </TableBody>

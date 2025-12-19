@@ -58,7 +58,6 @@ export function RewardCalculator() {
           Estimate rewards based on boosted credit share
         </CardDescription>
       </CardHeader>
-
       <CardContent className="space-y-8">
         {/* Inputs */}
         <div className="grid gap-4 md:grid-cols-2">
@@ -89,7 +88,15 @@ export function RewardCalculator() {
               <SelectTrigger>
                 <SelectValue placeholder="Select era" />
               </SelectTrigger>
-              <SelectContent>
+                  <SelectContent
+                    className="
+                      bg-white text-slate-900
+                      shadow-xl border border-slate-200
+                      dark:bg-[#0F1535]
+                      dark:text-slate-100
+                      dark:border-white/10
+                    "
+                  >
                 <SelectItem value="none">None (1×)</SelectItem>
                 {Object.entries(ERA_BOOSTS).map(([name, data]) => (
                   <SelectItem key={name} value={name}>
@@ -106,7 +113,15 @@ export function RewardCalculator() {
               <SelectTrigger>
                 <SelectValue placeholder="Select NFT" />
               </SelectTrigger>
-              <SelectContent>
+                <SelectContent
+                    className="
+                      bg-white text-slate-900
+                      shadow-xl border border-slate-200
+                      dark:bg-[#0F1535]
+                      dark:text-slate-100
+                      dark:border-white/10
+                    "
+                  >
                 <SelectItem value="none">None (1×)</SelectItem>
                 {Object.entries(NFT_BOOSTS).map(([name, data]) => (
                   <SelectItem key={name} value={name}>

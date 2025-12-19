@@ -9,10 +9,6 @@ export default function CalculatorPage() {
     <div className="space-y-8 animate-fade-in">
       {/* Page intro */}
       <div className="space-y-1">
-        <h1 className="flex items-center gap-3 text-3xl font-semibold sm:text-4xl">
-          <Calculator className="h-8 w-8 text-blue-500" />
-          Reward Calculator
-        </h1>
         <p className="text-muted-foreground max-w-2xl">
           Estimate your potential XAND rewards using era and NFT multipliers.
         </p>
