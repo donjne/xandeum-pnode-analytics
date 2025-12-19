@@ -20,21 +20,14 @@ export async function POST(req: Request) {
     const collection = db.collection('email_subscriptions');
 
     const result = await collection.findOneAndDelete({
-      token_hash: tokenHash,
+    token_hash: tokenHash,
     });
 
-    if (!result) {
-        return NextResponse.json(
-            { error: 'Invalid or expired token' },
-            { status: 404 }
-        );
-    }
-
-    if (!result.value) {
-      return NextResponse.json(
-        { error: 'Invalid unsubscribe code' },
+    if (!result || !result.value) {
+    return NextResponse.json(
+        { error: 'Invalid or expired token' },
         { status: 404 }
-      );
+    );
     }
 
     return NextResponse.json({ success: true });

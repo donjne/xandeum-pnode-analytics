@@ -1,94 +1,64 @@
 'use client';
 
 import * as React from 'react';
-import { Alert } from '@/lib/types/alert';
-
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
+import { Select, SelectItem, SelectTrigger, SelectContent } from '@/components/ui/select';
+import { useAlertStore } from '@/stores/alertStore';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
-interface Props {
-  alert?: Alert;
-  onSubmit: (alert: Alert) => void;
-  onCancel: () => void;
-}
+export function AlertForm({ onDone }: { onDone: () => void }) {
+  const { createAlert } = useAlertStore();
 
-export function AlertForm({ alert, onSubmit, onCancel }: Props) {
-  const [name, setName] = React.useState(alert?.name ?? '');
-  const [condition, setCondition] = React.useState('node_offline');
-  const [severity, setSeverity] = React.useState('medium');
+  const [email, setEmail] = React.useState('');
+  const [token, setToken] = React.useState<string | null>(null);
 
-  const handleSubmit = () => {
-    onSubmit({
-      id: alert?.id ?? `alert-${Date.now()}`,
-      name,
-      condition,
-      severity,
-      enabled: true,
-      createdAt: Date.now(),
-      updatedAt: Date.now(),
-      triggerCount: 0,
-      priority: severity,
-    } as Alert);
-  };
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+
+    // 1️⃣ subscribe email
+    const sub = await fetch('/api/alerts/subscribe', {
+      method: 'POST',
+      body: JSON.stringify({ email }),
+    });
+
+    const subData = await sub.json();
+    if (!sub.ok) throw new Error(subData.error);
+
+    setToken(subData.token);
+
+    // 2️⃣ create alert
+    await createAlert({
+      name: 'Node Offline',
+      condition: 'node_offline',
+      severity: 'high',
+    });
+
+    onDone();
+  }
 
   return (
-    <Card>
-      <CardContent className="space-y-6 p-6">
-        <div className="space-y-2">
-          <Label>Alert Name</Label>
-          <Input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="High storage usage"
-          />
-        </div>
+    <>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <Input
+          required
+          placeholder="Alert email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <Label>Condition</Label>
-            <Select value={condition} onValueChange={setCondition}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="node_offline">Node Offline</SelectItem>
-                <SelectItem value="storage_threshold">Storage Threshold</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+        <Button type="submit">Create Alert</Button>
+      </form>
 
-          <div>
-            <Label>Severity</Label>
-            <Select value={severity} onValueChange={setSeverity}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="critical">Critical</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2">
-          <Button variant="outline" onClick={onCancel}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit}>Save Alert</Button>
-        </div>
-      </CardContent>
-    </Card>
+      <Dialog open={!!token}>
+        <DialogContent>
+          <h3 className="text-lg font-bold">Unsubscribe Code</h3>
+          <p className="font-mono text-xl tracking-widest">{token}</p>
+          <p className="text-sm text-muted-foreground">
+            Save this. It will never be shown again.
+          </p>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

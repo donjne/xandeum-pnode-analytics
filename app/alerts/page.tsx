@@ -1,50 +1,31 @@
 'use client';
 
-import * as React from 'react';
-import { Plus } from 'lucide-react';
-
-import { AlertList } from '@/components/alerts/AlertList';
-import { AlertForm } from '@/components/alerts/AlertForm';
-import { Button } from '@/components/ui/button';
-import { Alert } from '@/lib/types/alert';
+import { useEffect } from 'react';
+import { useAlertStore } from '@/stores/alertStore';
+import { AlertForm, AlertCard, UnsubscribeBox } from '@/components/alerts';
 
 export default function AlertsPage() {
-  const [editingAlert, setEditingAlert] = React.useState<Alert | null>(null);
+  const { alerts, fetchAlerts } = useAlertStore();
+
+  useEffect(() => {
+    fetchAlerts();
+  }, []);
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-            Alerts
-          </h1>
-          <p className="text-muted-foreground">
-            Get notified when important network events occur
-          </p>
-        </div>
+    <div className="space-y-8">
+      <AlertForm onDone={fetchAlerts} />
 
-        {!editingAlert && (
-          <Button onClick={() => setEditingAlert({} as Alert)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Create Alert
-          </Button>
+      <div className="space-y-3">
+        {alerts.length === 0 ? (
+          <p className="text-muted-foreground">No alerts created</p>
+        ) : (
+          alerts.map((alert) => (
+            <AlertCard key={alert.id} alert={alert} />
+          ))
         )}
       </div>
 
-      {/* Form */}
-      {editingAlert && (
-        <AlertForm
-          alert={editingAlert}
-          onSubmit={() => setEditingAlert(null)}
-          onCancel={() => setEditingAlert(null)}
-        />
-      )}
-
-      {/* List */}
-      {!editingAlert && (
-        <AlertList onEdit={setEditingAlert} />
-      )}
+      <UnsubscribeBox />
     </div>
   );
 }
