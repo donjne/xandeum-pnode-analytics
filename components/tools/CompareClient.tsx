@@ -149,6 +149,7 @@ export default function CompareClient() {
 
               <PopoverContent
                 align="start"
+                onOpenAutoFocus={(e) => e.preventDefault()}
                 className="
                   w-full p-0
                   bg-white text-slate-900
@@ -164,15 +165,23 @@ export default function CompareClient() {
                     {availableNodes.map((node) => {
                       const key = safePubkey(node.pubkey);
                       return (
-                        <CommandItem
-                          key={key || `${node.address}-${node.rpc_port}`}
-                          onSelect={() => handleAddNode(node)}
-                          className="
-                            cursor-pointer
-                            focus:bg-blue-500/10
-                            dark:focus:bg-blue-500/20
-                          "
-                        >
+                          <CommandItem
+                            key={key || `${node.address}-${node.rpc_port}`}
+                            value={key}
+                            onSelect={(value) => {
+                              const selected = availableNodes.find(
+                                (n) => n.pubkey === value
+                              );
+                              if (selected) {
+                                handleAddNode(selected);
+                              }
+                            }}
+                            className="
+                              cursor-pointer
+                              aria-selected:bg-blue-500/10
+                              dark:aria-selected:bg-blue-500/20
+                            "
+                          >
                           <Check className="mr-2 h-4 w-4 opacity-0" />
                           <span className="font-mono text-sm">
                             {key

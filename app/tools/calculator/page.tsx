@@ -67,14 +67,14 @@ export default function CalculatorPage() {
         <CardContent className="space-y-6">
           <div className="grid gap-6 sm:grid-cols-2">
             <div className="space-y-2">
-              <h3 className="font-medium">Short-Term (DevNet)</h3>
+              <h3 className="font-medium">Short-Term (Devnet)</h3>
               <p className="text-sm text-muted-foreground">
                 Foundation-funded incentives (~10,000 XAND/month per pNode),
                 distributed quarterly.
               </p>
             </div>
             <div className="space-y-2">
-              <h3 className="font-medium">Long-Term (MainNet)</h3>
+              <h3 className="font-medium">Long-Term (Mainnet)</h3>
               <p className="text-sm text-muted-foreground">
                 94% of app fees distributed to pNodes, weighted by boosted
                 credits.
