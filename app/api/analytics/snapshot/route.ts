@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import clientPromise from '@/lib/mongodb';
-import { useNetworkStore } from '@/stores/networkStore';
 
 /**
  * Runs DAILY via Vercel cron

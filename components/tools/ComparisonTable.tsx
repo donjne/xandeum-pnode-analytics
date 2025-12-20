@@ -42,22 +42,32 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
       <CardContent>
         <div className="overflow-x-auto">
           <Table>
-            <TableHeader>
+            <TableHeader className="bg-card">
               <TableRow>
-                <TableHead className="sticky left-0 z-10 bg-card w-[180px]">
+                <TableHead
+                  className="
+                    sticky left-0 z-20 w-[180px]
+                    bg-card
+                    border-r
+                    text-foreground
+                  "
+                >
                   Metric
                 </TableHead>
+
                 {nodes.map((node) => {
                   const key = safePubkey(node.pubkey);
                   return (
                     <TableHead
                       key={key || `${node.address}-${node.rpc_port}`}
-                      className="min-w-[160px]"
+                      className="
+                        min-w-[160px]
+                        bg-card
+                        text-foreground
+                      "
                     >
                       <p className="font-mono text-xs">
-                        {key
-                          ? `${key.slice(0, 6)}...${key.slice(-4)}`
-                          : '—'}
+                        {key ? `${key.slice(0, 6)}...${key.slice(-4)}` : '—'}
                       </p>
                     </TableHead>
                   );
@@ -65,10 +75,18 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
               </TableRow>
             </TableHeader>
 
+
             <TableBody>
               {/* Status */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-card font-medium">
+                <TableCell
+                  className="
+                    sticky left-0 z-10
+                    bg-card
+                    border-r
+                    font-medium
+                  "
+                >
                   Status
                 </TableCell>
                 {nodes.map((node) => {
@@ -91,7 +109,14 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Health */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-card font-medium">
+                <TableCell
+                  className="
+                    sticky left-0 z-10
+                    bg-card
+                    border-r
+                    font-medium
+                  "
+                >
                   Health
                 </TableCell>
                 {nodes.map((node) => {
@@ -121,7 +146,14 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Version */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-card font-medium">
+                <TableCell
+                  className="
+                    sticky left-0 z-10
+                    bg-card
+                    border-r
+                    font-medium
+                  "
+                >
                   Version
                 </TableCell>
                 {nodes.map((node) => (
@@ -136,7 +168,14 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Uptime */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-card font-medium">
+                <TableCell
+                  className="
+                    sticky left-0 z-10
+                    bg-card
+                    border-r
+                    font-medium
+                  "
+                >
                   Uptime
                 </TableCell>
                 {nodes.map((node) => (
@@ -150,7 +189,14 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Storage */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-card font-medium">
+                <TableCell
+                  className="
+                    sticky left-0 z-10
+                    bg-card
+                    border-r
+                    font-medium
+                  "
+                >
                   Storage Used
                 </TableCell>
                 {nodes.map((node) => (
@@ -165,7 +211,14 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Utilization */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-card font-medium">
+                <TableCell
+                  className="
+                    sticky left-0 z-10
+                    bg-card
+                    border-r
+                    font-medium
+                  "
+                >
                   Utilization
                 </TableCell>
                 {nodes.map((node) => (

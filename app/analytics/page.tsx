@@ -1,5 +1,6 @@
 'use client';
 
+import { useNetworkReady } from '@/hooks/use-network-ready';
 import {
   NetworkGrowthChart,
   StorageAnalysis,
@@ -9,31 +10,28 @@ import {
 } from '@/components/analytics';
 
 export default function AnalyticsPage() {
+  const { isLoading } = useNetworkReady();
+
+  if (isLoading) {
+    return null; // or a global analytics skeleton later
+  }
+
   return (
     <div className="animate-fade-in">
-      {/* Growth — sets the tone */}
-      <section className="mb-32">
-        <NetworkGrowthChart />
-      </section>
-
-      {/* Storage — heavier, infrastructural */}
-      <section className="mb-32">
-        <StorageAnalysis />
-      </section>
-
-      {/* Health — immediate operational signal */}
-      <section className="mb-32">
-        <HeartbeatHealth />
-      </section>
-
-      {/* Versions — coordination & consensus */}
       <section className="mb-32">
         <VersionDistribution />
       </section>
-
-      {/* Rewards — reflective, summary */}
-      <section>
+      <section className="mb-32">
         <CreditDistribution />
+      </section>
+      <section className="mb-32">
+        <NetworkGrowthChart />
+      </section>
+      <section className="mb-32">
+        <HeartbeatHealth />
+      </section>
+      <section>
+        <StorageAnalysis />
       </section>
     </div>
   );

@@ -1,35 +1,54 @@
-import clientPromise from '@/lib/mongodb';
+import clientPromise from '@/lib/mongodb'
+import { PNode } from '@/lib/types'
 
-const HEARTBEAT_INTERVAL_SECONDS = 30;
-const DAILY_EXPECTED = (24 * 60 * 60) / HEARTBEAT_INTERVAL_SECONDS;
+interface HeartbeatStats {
+  success: number
+  failed: number
+  missed: number
+  success_rate: number
+  node_count: number
+}
 
-export async function getHeartbeatStats() {
-  const client = await clientPromise;
-  const db = client.db('network');
-  const nodes = await db.collection('nodes').find({}).toArray();
+/**
+ * Derives heartbeat stats from node last_seen timestamps.
+ * This keeps logic consistent across cron + UI.
+ */
+export async function getHeartbeatStats(): Promise<HeartbeatStats> {
+  const client = await clientPromise
+  const db = client.db('network')
 
-  let success = 0;
-  let failed = 0;
-  let missed = 0;
+  const nodes = await db.collection<PNode>('nodes').find({}).toArray()
+  const now = Math.floor(Date.now() / 1000)
 
-  const now = Date.now() / 1000;
+  let success = 0
+  let failed = 0
+  let missed = 0
 
   for (const node of nodes) {
-    const lastSeen = node.last_seen_timestamp ?? 0;
-    const delta = now - lastSeen;
+    if (!node.last_seen_timestamp) {
+      missed++
+      continue
+    }
 
-    if (delta <= HEARTBEAT_INTERVAL_SECONDS * 2) {
-      success += DAILY_EXPECTED;
-    } else if (delta <= HEARTBEAT_INTERVAL_SECONDS * 10) {
-      failed += DAILY_EXPECTED;
+    const delta = now - node.last_seen_timestamp
+
+    if (delta <= 60) {
+      success++
+    } else if (delta <= 300) {
+      failed++
     } else {
-      missed += DAILY_EXPECTED;
+      missed++
     }
   }
 
+  const total = success + failed + missed
+  const success_rate = total === 0 ? 0 : (success / total) * 100
+
   return {
-    success: Math.floor(success),
-    failed: Math.floor(failed),
-    missed: Math.floor(missed),
-  };
+    success,
+    failed,
+    missed,
+    success_rate,
+    node_count: nodes.length,
+  }
 }

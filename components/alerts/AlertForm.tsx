@@ -69,7 +69,20 @@ export function AlertForm({ onDone }: { onDone: () => void }) {
             <p className="text-sm text-red-500">{error}</p>
           )}
 
-          <Button type="submit" disabled={loading}>
+          <Button
+            type="submit"
+            disabled={loading}
+            className="
+              h-11 px-6 rounded-xl
+              font-medium
+              bg-primary text-primary-foreground
+              shadow-sm
+              hover:shadow-md
+              active:scale-[0.98]
+              transition-all
+              disabled:opacity-60 disabled:cursor-not-allowed
+            "
+          >
             {loading ? 'Creating…' : 'Create Alert'}
           </Button>
         </form>

@@ -54,6 +54,7 @@ function MapSkeleton() {
 --------------------------------------------- */
 export function NetworkMap() {
   const { nodes, onlineCount, totalCount } = useNetworkStore();
+  const [isDark, setIsDark] = React.useState(false);
 
   const [locations, setLocations] = React.useState<
     {
@@ -110,6 +111,23 @@ export function NetworkMap() {
     };
   }, [nodes]);
 
+  React.useEffect(() => {
+    // initial
+    setIsDark(document.documentElement.classList.contains('dark'));
+
+    // watch for theme changes
+    const observer = new MutationObserver(() => {
+      setIsDark(document.documentElement.classList.contains('dark'));
+    });
+
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
+
+    return () => observer.disconnect();
+  }, []);
+
   /* -------------------------------------------
      Map center
   ------------------------------------------- */
@@ -124,7 +142,7 @@ export function NetworkMap() {
   return (
     <Card
       className={cn(
-        'relative overflow-hidden rounded-2xl border border-transparent',
+        'relative rounded-2xl border border-transparent',
         // light mode
         'bg-white shadow-[0_16px_40px_rgba(0,0,0,0.08)]',
         // dark mode separation (NO white border)
@@ -149,19 +167,23 @@ export function NetworkMap() {
 
       {/* Content */}
       <CardContent>
-        <div className="relative overflow-hidden rounded-xl">
+        <div className="relative rounded-xl">
           {locations.length === 0 ? (
             <MapSkeleton />
           ) : (
             <MapContainer
               center={center}
               zoom={locations.length === 1 ? 4 : 2}
-              className="h-[380px] w-full"
+              className="h-[380px] w-full rounded-xl"
+              scrollWheelZoom
             >
               <TileLayer
-                url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+                url={
+                  isDark
+                    ? 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+                    : 'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png'
+                }
               />
-
               {locations.map((loc, i) => (
                 <CircleMarker
                   key={i}

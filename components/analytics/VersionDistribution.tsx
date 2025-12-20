@@ -7,13 +7,17 @@ import { useNetworkStore } from '@/stores/networkStore';
 import { formatPercentage } from '@/lib/utils';
 
 const COLORS = [
-  'hsl(var(--primary))',
-  '#10b981',
-  '#f59e0b',
-  '#ef4444',
-  '#8b5cf6',
-  '#ec4899',
+  '#10b981', // emerald
+  '#3b82f6', // blue
+  '#f59e0b', // amber
+  '#8b5cf6', // violet
+  '#ec4899', // pink
+  '#22c55e', // green
 ];
+
+function truncateVersion(v: string, max = 18) {
+  return v.length > max ? `${v.slice(0, max)}…` : v;
+}
 
 export function VersionDistribution() {
   const { nodes } = useNetworkStore();
@@ -28,7 +32,8 @@ export function VersionDistribution() {
 
     return Array.from(map.entries())
       .map(([version, count], i) => ({
-        name: `v${version}`,
+        raw: version,
+        name: truncateVersion(version),
         value: count,
         percentage: (count / total) * 100,
         color: COLORS[i % COLORS.length],
@@ -36,11 +41,11 @@ export function VersionDistribution() {
       .sort((a, b) => b.value - a.value);
   })();
 
-  const latest = data[0];
+  const mostUsed = data[0];
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-start justify-between">
+      <CardHeader className="flex items-start justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-2 text-sm font-medium">
             <Package className="h-4 w-4" />
@@ -51,31 +56,33 @@ export function VersionDistribution() {
           </p>
         </div>
 
-        {latest && (
+        {mostUsed && (
           <div className="text-right">
             <p className="text-xs text-muted-foreground">Most Adopted</p>
-            <p className="text-lg font-semibold">{latest.name}</p>
+            <p className="text-sm font-medium">{mostUsed.name}</p>
             <p className="text-xs text-muted-foreground">
-              {formatPercentage(latest.percentage, 1)} of nodes
+              {formatPercentage(mostUsed.percentage, 1)}
             </p>
           </div>
         )}
       </CardHeader>
 
       <CardContent className="space-y-6">
-        <PieChart
-          data={data}
-          height={260}
-          innerRadius={70}
-          outerRadius={110}
-          showLegend={false}
-        />
+        <div className="rounded-xl bg-muted/50 ring-1 ring-inset ring-border p-4">
+          <PieChart
+            data={data}
+            height={260}
+            innerRadius={70}
+            outerRadius={110}
+            showLegend={false}
+          />
+        </div>
 
-        <div className="space-y-2 border-t pt-4">
+        <div className="space-y-2">
           {data.map((v) => (
             <div
-              key={v.name}
-              className="flex items-center justify-between rounded-md px-2 py-1 text-sm"
+              key={v.raw}
+              className="flex items-center justify-between rounded-md px-2 py-1 text-sm hover:bg-muted/40"
             >
               <div className="flex items-center gap-2">
                 <span

@@ -56,69 +56,104 @@ export function AreaChart({
   useGradient = true,
   className,
 }: AreaChartProps) {
-  const content = (
-    <ChartContainer className={`h-[${height}px]`}>
-      <StyledAreaChart data={data}>
-        {useGradient && (
-          <defs>
-            {areas.map((area) => (
-              <linearGradient key={area.dataKey} id={`gradient-${area.dataKey}`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor={area.color} stopOpacity={0.3} />
-                <stop offset="95%" stopColor={area.color} stopOpacity={0} />
-              </linearGradient>
-            ))}
-          </defs>
-        )}
-        {showGrid && <StyledCartesianGrid strokeDasharray="3 3" className="stroke-muted" />}
-        <StyledXAxis
-          dataKey={xAxisKey}
-          tick={{ fontSize: 12 }}
-          tickLine={false}
-          axisLine={false}
-        />
-        <StyledYAxis
-          tick={{ fontSize: 12 }}
-          tickLine={false}
-          axisLine={false}
-          tickFormatter={yAxisFormatter}
-        />
-        <StyledTooltip
-          content={
-            <ChartTooltipContent
-              labelKey={xAxisKey}
-              formatter={tooltipFormatter}
+  const chart = (
+    <div style={{ height }}>
+      <ChartContainer>
+        <StyledAreaChart data={data}>
+          {useGradient && (
+            <defs>
+              {areas.map((area) => (
+                <linearGradient
+                  key={area.dataKey}
+                  id={`gradient-${area.dataKey}`}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="5%" stopColor={area.color} stopOpacity={0.35} />
+                  <stop offset="95%" stopColor={area.color} stopOpacity={0} />
+                </linearGradient>
+              ))}
+            </defs>
+          )}
+
+          {showGrid && (
+            <StyledCartesianGrid
+              strokeDasharray="3 3"
+              className="stroke-muted"
             />
-          }
-        />
-        {showLegend && <StyledLegend content={<ChartLegend />} />}
-        {areas.map((area) => (
-          <StyledArea
-            key={area.dataKey}
-            type="monotone"
-            dataKey={area.dataKey}
-            name={area.name}
-            stroke={area.color}
-            strokeWidth={area.strokeWidth || 2}
-            fill={useGradient ? `url(#gradient-${area.dataKey})` : area.color}
-            fillOpacity={area.fillOpacity || 1}
-            stackId={area.stackId}
+          )}
+
+          <StyledXAxis
+            dataKey={xAxisKey}
+            tick={{ fontSize: 12 }}
+            tickLine={false}
+            axisLine={false}
           />
-        ))}
-      </StyledAreaChart>
-    </ChartContainer>
+
+          <StyledYAxis
+            tick={{ fontSize: 12 }}
+            tickLine={false}
+            axisLine={false}
+            tickFormatter={yAxisFormatter}
+          />
+
+          <StyledTooltip
+            wrapperClassName="
+              rounded-lg
+              border
+              bg-card
+              text-foreground
+              shadow-md
+            "
+            content={
+              <ChartTooltipContent
+                labelKey={xAxisKey}
+                formatter={tooltipFormatter}
+              />
+            }
+          />
+
+          {showLegend && (
+            <StyledLegend
+              content={<ChartLegend className="text-foreground" />}
+            />
+          )}
+
+          {areas.map((area) => (
+            <StyledArea
+              key={area.dataKey}
+              type="monotone"
+              dataKey={area.dataKey}
+              name={area.name}
+              stroke={area.color}
+              strokeWidth={area.strokeWidth ?? 2}
+              fill={
+                useGradient
+                  ? `url(#gradient-${area.dataKey})`
+                  : area.color
+              }
+              fillOpacity={area.fillOpacity ?? 1}
+              stackId={area.stackId}
+            />
+          ))}
+        </StyledAreaChart>
+      </ChartContainer>
+    </div>
   );
 
-  if (!title) {
-    return content;
-  }
+  if (!title) return chart;
 
   return (
     <Card className={className}>
       <CardHeader>
         <CardTitle>{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
+        {description && (
+          <CardDescription>{description}</CardDescription>
+        )}
       </CardHeader>
-      <CardContent>{content}</CardContent>
+      <CardContent>{chart}</CardContent>
     </Card>
   );
 }

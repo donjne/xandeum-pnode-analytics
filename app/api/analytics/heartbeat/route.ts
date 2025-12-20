@@ -1,16 +1,16 @@
-import { NextResponse } from 'next/server';
-import clientPromise from '@/lib/mongodb';
+import { NextResponse } from 'next/server'
+import clientPromise from '@/lib/mongodb'
 
 export async function GET() {
-  const client = await clientPromise;
-  const db = client.db('analytics');
+  const client = await clientPromise
+  const db = client.db('analytics')
 
   const data = await db
-    .collection('heartbeat_daily')
+    .collection('heartbeat_snapshots')
     .find({})
     .sort({ date: 1 })
-    .limit(30)
-    .toArray();
+    .limit(90)
+    .toArray()
 
-  return NextResponse.json(data);
+  return NextResponse.json(data)
 }
