@@ -1,23 +1,22 @@
 'use client';
 
-import { useEffect } from 'react';
 import { useAlertStore } from '@/stores/alertStore';
-import { AlertForm, AlertCard, UnsubscribeBox } from '@/components/alerts';
+import { AlertForm } from '@/components/alerts/AlertForm';
+import { AlertCard } from '@/components/alerts/AlertCard';
+import { UnsubscribeBox } from '@/components/alerts/UnsubscribeBox';
 
 export default function AlertsPage() {
-  const { alerts, fetchAlerts } = useAlertStore();
-
-  useEffect(() => {
-    fetchAlerts();
-  }, []);
+  const { alerts } = useAlertStore();
 
   return (
-    <div className="space-y-8">
-      <AlertForm onDone={fetchAlerts} />
+    <div className="space-y-10">
+      <AlertForm onDone={() => {}} />
 
       <div className="space-y-3">
         {alerts.length === 0 ? (
-          <p className="text-muted-foreground">No alerts created</p>
+          <p className="text-sm text-muted-foreground">
+            No alerts created
+          </p>
         ) : (
           alerts.map((alert) => (
             <AlertCard key={alert.id} alert={alert} />

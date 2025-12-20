@@ -1,15 +1,12 @@
 'use client';
 
-import * as React from 'react';
 import { Package } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { PieChart } from '@/components/charts/PieChart';
-import { BarChart } from '@/components/charts/BarChart';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useNetworkStore } from '@/stores/networkStore';
 import { formatPercentage } from '@/lib/utils';
 
-const VERSION_COLORS = [
+const COLORS = [
   'hsl(var(--primary))',
   '#10b981',
   '#f59e0b',
@@ -21,108 +18,79 @@ const VERSION_COLORS = [
 export function VersionDistribution() {
   const { nodes } = useNetworkStore();
 
-  const versionData = React.useMemo(() => {
-    const versionMap = new Map<string, number>();
-    nodes.forEach((node) => {
-      versionMap.set(node.version, (versionMap.get(node.version) || 0) + 1);
-    });
+  const data = (() => {
+    const map = new Map<string, number>();
+    nodes.forEach((n) =>
+      map.set(n.version, (map.get(n.version) || 0) + 1)
+    );
 
     const total = nodes.length || 1;
-    return Array.from(versionMap.entries())
-      .map(([version, count], index) => ({
+
+    return Array.from(map.entries())
+      .map(([version, count], i) => ({
         name: `v${version}`,
-        version,
         value: count,
         percentage: (count / total) * 100,
-        color: VERSION_COLORS[index % VERSION_COLORS.length],
+        color: COLORS[i % COLORS.length],
       }))
       .sort((a, b) => b.value - a.value);
-  }, [nodes]);
+  })();
 
-  const latestVersion = versionData[0];
-  const adoptionRate = latestVersion ? latestVersion.percentage : 0;
+  const latest = data[0];
 
   return (
     <Card>
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="space-y-1">
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5" />
-              Version Distribution
-            </CardTitle>
-            <CardDescription>Software versions across the network</CardDescription>
+      <CardHeader className="flex flex-row items-start justify-between">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2 text-sm font-medium">
+            <Package className="h-4 w-4" />
+            Version Distribution
           </div>
+          <p className="text-xs text-muted-foreground">
+            Active software versions across the network
+          </p>
+        </div>
+
+        {latest && (
           <div className="text-right">
-            <p className="text-sm text-muted-foreground">Latest Version</p>
-            <p className="text-xl font-bold">{latestVersion?.name || 'N/A'}</p>
+            <p className="text-xs text-muted-foreground">Most Adopted</p>
+            <p className="text-lg font-semibold">{latest.name}</p>
             <p className="text-xs text-muted-foreground">
-              {formatPercentage(adoptionRate, 1)} adoption
+              {formatPercentage(latest.percentage, 1)} of nodes
             </p>
           </div>
-        </div>
+        )}
       </CardHeader>
-      <CardContent>
-        <Tabs defaultValue="pie" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="pie">Pie Chart</TabsTrigger>
-            <TabsTrigger value="bar">Bar Chart</TabsTrigger>
-          </TabsList>
 
-          <TabsContent value="pie" className="space-y-4">
-            <PieChart
-              data={versionData}
-              height={300}
-              showLegend={true}
-              innerRadius={60}
-              outerRadius={100}
-              tooltipFormatter={(value, name) => `${value} nodes`}
-            />
-          </TabsContent>
+      <CardContent className="space-y-6">
+        <PieChart
+          data={data}
+          height={260}
+          innerRadius={70}
+          outerRadius={110}
+          showLegend={false}
+        />
 
-          <TabsContent value="bar" className="space-y-4">
-            <BarChart
-              data={versionData.map((v) => ({
-                version: v.name,
-                count: v.value,
-              }))}
-              bars={[
-                {
-                  dataKey: 'count',
-                  name: 'Nodes',
-                  color: 'hsl(var(--primary))',
-                },
-              ]}
-              xAxisKey="version"
-              height={300}
-              showLegend={false}
-            />
-          </TabsContent>
-        </Tabs>
-
-        {/* Version list */}
-        <div className="mt-4 space-y-2 border-t pt-4">
-          <p className="text-sm font-medium">Version Breakdown</p>
-          <div className="space-y-2">
-            {versionData.map((version) => (
-              <div
-                key={version.version}
-                className="flex items-center justify-between rounded-lg border p-2"
-              >
-                <div className="flex items-center gap-2">
-                  <div
-                    className="h-3 w-3 rounded-full"
-                    style={{ backgroundColor: version.color }}
-                  />
-                  <span className="text-sm font-medium">{version.name}</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="text-muted-foreground">{version.value} nodes</span>
-                  <span className="font-medium">{formatPercentage(version.percentage, 1)}</span>
-                </div>
+        <div className="space-y-2 border-t pt-4">
+          {data.map((v) => (
+            <div
+              key={v.name}
+              className="flex items-center justify-between rounded-md px-2 py-1 text-sm"
+            >
+              <div className="flex items-center gap-2">
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: v.color }}
+                />
+                <span className="font-medium">{v.name}</span>
               </div>
-            ))}
-          </div>
+
+              <div className="flex items-center gap-3 text-muted-foreground">
+                <span>{v.value} nodes</span>
+                <span>{formatPercentage(v.percentage, 1)}</span>
+              </div>
+            </div>
+          ))}
         </div>
       </CardContent>
     </Card>

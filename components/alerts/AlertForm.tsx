@@ -3,60 +3,94 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select, SelectItem, SelectTrigger, SelectContent } from '@/components/ui/select';
-import { useAlertStore } from '@/stores/alertStore';
+import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { useAlertStore } from '@/stores/alertStore';
 
 export function AlertForm({ onDone }: { onDone: () => void }) {
   const { createAlert } = useAlertStore();
 
   const [email, setEmail] = React.useState('');
   const [token, setToken] = React.useState<string | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    setError(null);
+    setLoading(true);
 
-    // 1️⃣ subscribe email
-    const sub = await fetch('/api/alerts/subscribe', {
-      method: 'POST',
-      body: JSON.stringify({ email }),
-    });
+    try {
+      const res = await fetch('/api/alerts/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-    const subData = await sub.json();
-    if (!sub.ok) throw new Error(subData.error);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
 
-    setToken(subData.token);
+      setToken(data.token);
 
-    // 2️⃣ create alert
-    await createAlert({
-      name: 'Node Offline',
-      condition: 'node_offline',
-      severity: 'high',
-    });
+      createAlert({
+        name: 'Node Offline',
+        condition: 'node_offline',
+        severity: 'high',
+        enabled: true,
+      });
 
-    onDone();
+      onDone();
+    } catch (err: any) {
+      setError(err.message ?? 'Failed to create alert');
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <Input
-          required
-          placeholder="Alert email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+      <Card className="rounded-xl border bg-white p-6 shadow-sm dark:bg-[#0A0E27]">
+        <h2 className="text-lg font-semibold">Alert Email</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          Alerts will be sent to this email address
+        </p>
 
-        <Button type="submit">Create Alert</Button>
-      </form>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <Input
+            required
+            type="email"
+            placeholder="you@example.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="h-11"
+          />
 
+          {error && (
+            <p className="text-sm text-red-500">{error}</p>
+          )}
+
+          <Button type="submit" disabled={loading}>
+            {loading ? 'Creating…' : 'Create Alert'}
+          </Button>
+        </form>
+      </Card>
+
+      {/* One-time token modal */}
       <Dialog open={!!token}>
-        <DialogContent>
-          <h3 className="text-lg font-bold">Unsubscribe Code</h3>
-          <p className="font-mono text-xl tracking-widest">{token}</p>
+        <DialogContent className="space-y-4 text-center">
+          <h3 className="text-lg font-semibold">Unsubscribe Code</h3>
+
+          <div className="rounded-lg bg-muted px-4 py-3 font-mono text-xl tracking-widest">
+            {token}
+          </div>
+
           <p className="text-sm text-muted-foreground">
-            Save this. It will never be shown again.
+            Save this code. It will never be shown again.
           </p>
+
+          <Button onClick={() => setToken(null)}>
+            I&apos;ve saved it
+          </Button>
         </DialogContent>
       </Dialog>
     </>

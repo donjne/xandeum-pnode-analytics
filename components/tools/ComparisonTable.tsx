@@ -44,7 +44,7 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="sticky left-0 z-10 bg-background w-[180px]">
+                <TableHead className="sticky left-0 z-10 bg-card w-[180px]">
                   Metric
                 </TableHead>
                 {nodes.map((node) => {
@@ -68,7 +68,7 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
             <TableBody>
               {/* Status */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-background font-medium">
+                <TableCell className="sticky left-0 bg-card font-medium">
                   Status
                 </TableCell>
                 {nodes.map((node) => {
@@ -91,7 +91,7 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Health */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-background font-medium">
+                <TableCell className="sticky left-0 bg-card font-medium">
                   Health
                 </TableCell>
                 {nodes.map((node) => {
@@ -121,7 +121,7 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Version */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-background font-medium">
+                <TableCell className="sticky left-0 bg-card font-medium">
                   Version
                 </TableCell>
                 {nodes.map((node) => (
@@ -136,7 +136,7 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Uptime */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-background font-medium">
+                <TableCell className="sticky left-0 bg-card font-medium">
                   Uptime
                 </TableCell>
                 {nodes.map((node) => (
@@ -150,7 +150,7 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Storage */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-background font-medium">
+                <TableCell className="sticky left-0 bg-card font-medium">
                   Storage Used
                 </TableCell>
                 {nodes.map((node) => (
@@ -165,7 +165,7 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Utilization */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-background font-medium">
+                <TableCell className="sticky left-0 bg-card font-medium">
                   Utilization
                 </TableCell>
                 {nodes.map((node) => (
@@ -179,7 +179,7 @@ export function ComparisonTable({ nodes }: ComparisonTableProps) {
 
               {/* Address */}
               <TableRow>
-                <TableCell className="sticky left-0 bg-background font-medium">
+                <TableCell className="sticky left-0 bg-card font-medium">
                   Address
                 </TableCell>
                 {nodes.map((node) => (
