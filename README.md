@@ -1,6 +1,48 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Xandeum pNode Analytics Platform
 
-## Getting Started
+> **Real-time analytics and monitoring for Xandeum provider nodes on Solana**
+
+A web application for exploring and monitoring the Xandeum pNode network. Built with Next.js, TypeScript, and real-time data from the xandeum-prpc SDK.
+
+---
+
+## Features
+
+### **Dashboard**
+
+- Network overview with real-time statistics
+- Interactive global pNode map
+- Health monitoring and performance metrics
+- Live activity feed
+
+### **Explorer**
+
+- Browse all pNodes with advanced search
+- Filter by status, version, and storage capacity
+- Sort by health, uptime, storage, or last seen
+- Grid and table view modes
+- Real-time data updates (30s intervals)
+
+### **Analytics**
+
+- Network growth trends
+- Storage utilization analysis
+- Version distribution charts
+- Heartbeat health monitoring
+- Credit distribution insights
+
+### **Individual pNode Details**
+
+- Comprehensive node overview
+- Health score breakdown
+- Storage status tracking
+- Uptime monitoring
+- Heartbeat status
+- Real-time metrics
+
+## Go to <https://xpnode.vercel.app> to see the deployed website
+
+## Or you can get started Locally
 
 First, run the development server:
 
