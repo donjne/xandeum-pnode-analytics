@@ -176,7 +176,7 @@ export function PNodeTable({
                 </TableCell>
 
                 <TableCell>
-                  <Link href={`/nodes/${node.pubkey}`}>
+                  <Link href={`/explorer/${node.pubkey}`}>
                     <Button
                       variant="ghost"
                       size="icon"

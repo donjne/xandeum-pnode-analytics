@@ -1,6 +1,13 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+
 import {
   ChartContainer,
   ChartTooltipContent,
@@ -12,53 +19,128 @@ import {
   StyledTooltip,
 } from '@/components/ui/chart';
 
-interface HeartbeatChartProps {
-  data?: Array<{ timestamp: number; success: number; failed: number }>;
+import { cn } from '@/lib/utils';
+
+/* ---------------------------------------------
+   Types
+--------------------------------------------- */
+export interface HeartbeatPoint {
+  timestamp: number;
+  success: number;
+  failed: number;
 }
 
-// Mock data generator
-const generateMockData = () => {
-  const now = Date.now();
-  return Array.from({ length: 24 }, (_, i) => ({
-    timestamp: now - (23 - i) * 60 * 60 * 1000,
-    success: Math.floor(Math.random() * 20) + 100,
-    failed: Math.floor(Math.random() * 5),
-  }));
-};
+interface HeartbeatChartProps {
+  data?: HeartbeatPoint[];
+}
 
-export function HeartbeatChart({ data = generateMockData() }: HeartbeatChartProps) {
+/* ---------------------------------------------
+   Helpers
+--------------------------------------------- */
+function formatTime(ts: number) {
+  const date = new Date(ts);
+  return date.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
+
+/* ---------------------------------------------
+   Component
+--------------------------------------------- */
+export function HeartbeatChart({ data }: HeartbeatChartProps) {
+  /* -------------------------------------------
+     No data available
+  ------------------------------------------- */
+  if (!data || data.length === 0) {
+    return (
+      <Card
+        className={cn(
+          'rounded-2xl border border-transparent',
+          'bg-white shadow-[0_14px_40px_rgba(0,0,0,0.06)]',
+          'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl',
+          'dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]'
+        )}
+      >
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">
+            Heartbeat History
+          </CardTitle>
+          <CardDescription>
+            Historical heartbeat reliability
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="flex h-[260px] items-center justify-center">
+          <p className="max-w-sm text-center text-sm text-muted-foreground">
+            Heartbeat history will appear once per-node heartbeat metrics are
+            available.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  /* -------------------------------------------
+     Normalize data
+  --------------------------------------------- */
   const chartData = data.map((d) => ({
-    time: new Date(d.timestamp).toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-    }),
+    time: formatTime(
+      d.timestamp < 1e12 ? d.timestamp * 1000 : d.timestamp
+    ),
     success: d.success,
     failed: d.failed,
   }));
 
-  const totalSuccess = chartData.reduce((sum, d) => sum + d.success, 0);
-  const totalFailed = chartData.reduce((sum, d) => sum + d.failed, 0);
-  const successRate = ((totalSuccess / (totalSuccess + totalFailed)) * 100).toFixed(2);
+  const totalSuccess = data.reduce((s, d) => s + d.success, 0);
+  const totalFailed = data.reduce((s, d) => s + d.failed, 0);
+  const successRate =
+    totalSuccess + totalFailed > 0
+      ? (totalSuccess / (totalSuccess + totalFailed)) * 100
+      : 0;
 
+  /* -------------------------------------------
+     Render
+  --------------------------------------------- */
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Heartbeat Success Rate</CardTitle>
+    <Card
+      className={cn(
+        'rounded-2xl border border-transparent',
+        'bg-white shadow-[0_14px_40px_rgba(0,0,0,0.06)]',
+        'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl',
+        'dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]'
+      )}
+    >
+      <CardHeader className="pb-4">
+        <CardTitle className="text-base font-semibold">
+          Heartbeat History
+        </CardTitle>
         <CardDescription>
-          24-hour heartbeat history • {successRate}% success rate
+          {successRate.toFixed(1)}% success rate across recorded intervals
         </CardDescription>
       </CardHeader>
+
       <CardContent>
         <ChartContainer className="h-[300px]">
           <StyledBarChart data={chartData}>
-            <StyledCartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <StyledCartesianGrid
+              strokeDasharray="3 3"
+              className="stroke-muted"
+            />
+
             <StyledXAxis
               dataKey="time"
               tick={{ fontSize: 12 }}
               tickLine={false}
               axisLine={false}
             />
-            <StyledYAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
+
+            <StyledYAxis
+              tick={{ fontSize: 12 }}
+              tickLine={false}
+              axisLine={false}
+            />
+
             <StyledTooltip
               content={
                 <ChartTooltipContent
@@ -69,17 +151,19 @@ export function HeartbeatChart({ data = generateMockData() }: HeartbeatChartProp
                 />
               }
             />
+
             <StyledBar
               dataKey="success"
-              fill="hsl(var(--primary))"
+              name="Successful"
+              fill="#10b981"
               radius={[4, 4, 0, 0]}
-              name="Success"
             />
+
             <StyledBar
               dataKey="failed"
-              fill="hsl(var(--destructive))"
-              radius={[4, 4, 0, 0]}
               name="Failed"
+              fill="#ef4444"
+              radius={[4, 4, 0, 0]}
             />
           </StyledBarChart>
         </ChartContainer>

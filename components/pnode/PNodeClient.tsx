@@ -1,6 +1,9 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import * as React from 'react';
+import { useParams, useRouter } from 'next/navigation';
+import { AlertCircle } from 'lucide-react';
+
 import {
   PNodeHeader,
   PNodeOverview,
@@ -11,57 +14,89 @@ import {
   RewardsPanel,
   GossipConnections,
 } from '@/components/pnode';
+
+import { useNetworkReady } from '@/hooks/use-network-ready';
+import { useNetworkStore } from '@/stores/networkStore';
+
 import { LoadingSpinner } from '@/components/shared/LoadingSpinner';
 import { EmptyState } from '@/components/shared/EmptyState';
-import { useNode } from '@/hooks/use-network';
-import { AlertCircle } from 'lucide-react';
 
+/* ---------------------------------------------
+   PNode Details Client
+--------------------------------------------- */
 export default function PNodeClient() {
+  const router = useRouter();
   const { pubkey } = useParams<{ pubkey: string }>();
-  const { node, isLoading, notFound } = useNode(pubkey);
 
+  /**
+   * Ensure network data is ready
+   * (this hook should ONLY fetch, not select)
+   */
+  const { isLoading } = useNetworkReady();
+  const { getNodeByPubkey } = useNetworkStore();
+
+  /* -------------------------------------------
+     Resolve node
+  ------------------------------------------- */
+  const node = React.useMemo(() => {
+    if (!pubkey) return undefined;
+    return getNodeByPubkey(pubkey);
+  }, [pubkey, getNodeByPubkey]);
+
+  /* -------------------------------------------
+     Loading
+  ------------------------------------------- */
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <LoadingSpinner text="Loading pNode details..." />
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <LoadingSpinner text="Loading pNode details…" />
       </div>
     );
   }
 
-  if (notFound) {
+  /* -------------------------------------------
+     Not found
+  ------------------------------------------- */
+  if (!node) {
     return (
-      <div className="flex items-center justify-center min-h-[60vh]">
+      <div className="flex min-h-[60vh] items-center justify-center">
         <EmptyState
           icon={AlertCircle}
           title="pNode Not Found"
           description={`No pNode found with pubkey: ${pubkey}`}
           action={{
             label: 'Back to Explorer',
-            onClick: () => (window.location.href = '/explorer'),
+            onClick: () => router.push('/explorer'),
           }}
         />
       </div>
     );
   }
 
-  const definedNode = node!;
-
+  /* -------------------------------------------
+     Render
+  ------------------------------------------- */
   return (
     <div className="space-y-6 animate-fade-in">
-      <PNodeHeader node={definedNode} />
+      {/* Header */}
+      <PNodeHeader node={node} />
 
+      {/* Overview + Health */}
       <div className="grid gap-6 lg:grid-cols-2">
-        <PNodeOverview node={definedNode} />
-        <HealthScore node={definedNode} />
+        <PNodeOverview node={node} />
+        <HealthScore node={node} />
       </div>
 
+      {/* Storage + Uptime (no fake data) */}
       <div className="grid gap-6 lg:grid-cols-2">
         <StorageChart />
         <UptimeChart />
       </div>
 
+      {/* Heartbeats */}
       <HeartbeatChart />
 
+      {/* Rewards + Gossip */}
       <div className="grid gap-6 lg:grid-cols-2">
         <RewardsPanel />
         <GossipConnections />

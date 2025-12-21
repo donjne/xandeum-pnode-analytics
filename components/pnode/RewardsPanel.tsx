@@ -1,134 +1,168 @@
 'use client';
 
-import * as React from 'react';
-import { Coins, TrendingUp, Award, Zap } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Coins,
+  Zap,
+  Award,
+  AlertCircle,
+} from 'lucide-react';
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from '@/components/ui/card';
+
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-import { formatCurrency, formatNumber } from '@/lib/utils';
+import { cn, formatNumber } from '@/lib/utils';
+
+/* ---------------------------------------------
+   Types
+--------------------------------------------- */
+interface RewardBoost {
+  name: string;
+  multiplier: number;
+}
 
 interface RewardsPanelProps {
   credits?: number;
   boostedCredits?: number;
-  networkShare?: number;
-  estimatedRewards?: {
-    perEpoch: number;
-    perMonth: number;
-    perYear: number;
-  };
-  boosts?: Array<{ name: string; multiplier: number }>;
+  boosts?: RewardBoost[];
 }
 
+/* ---------------------------------------------
+   Component
+--------------------------------------------- */
 export function RewardsPanel({
-  credits = 1000,
-  boostedCredits = 16000,
-  networkShare = 0.05,
-  estimatedRewards = {
-    perEpoch: 0.5,
-    perMonth: 150,
-    perYear: 1800,
-  },
-  boosts = [
-    { name: 'Deep South Era', multiplier: 16 },
-    { name: 'Titan NFT', multiplier: 11 },
-  ],
+  credits,
+  boostedCredits,
+  boosts,
 }: RewardsPanelProps) {
-  const totalMultiplier = boosts.reduce((acc, boost) => acc * boost.multiplier, 1);
+  const hasData =
+    typeof credits === 'number' ||
+    typeof boostedCredits === 'number' ||
+    (boosts && boosts.length > 0);
+
+  const totalMultiplier =
+    boosts && boosts.length > 0
+      ? boosts.reduce((acc, b) => acc * b.multiplier, 1)
+      : null;
 
   return (
-    <Card>
+    <Card
+      className={cn(
+        'rounded-2xl border border-transparent',
+        'bg-white shadow-[0_14px_40px_rgba(0,0,0,0.06)]',
+        'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl',
+        'dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]'
+      )}
+    >
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold">
           <Coins className="h-5 w-5" />
-          Credits & Rewards
+          Credits & Boosts
         </CardTitle>
-        <CardDescription>Performance-based earnings and multipliers</CardDescription>
+        <CardDescription>
+          Node credit accumulation and active multipliers
+        </CardDescription>
       </CardHeader>
+
       <CardContent className="space-y-6">
-        {/* Credits */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Base Credits</span>
-            <span className="text-2xl font-bold">{formatNumber(credits)}</span>
+        {/* ------------------------------
+            No Data State
+        ------------------------------- */}
+        {!hasData && (
+          <div className="flex flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center">
+            <AlertCircle className="h-6 w-6 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              Reward and credit data is not yet available for this pNode.
+            </p>
           </div>
-          <div className="flex items-center justify-between rounded-lg bg-primary/10 p-3">
-            <div className="flex items-center gap-2">
-              <Zap className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Boosted Credits</span>
-            </div>
-            <span className="text-xl font-bold text-primary">{formatNumber(boostedCredits)}</span>
-          </div>
-          <div className="flex items-center justify-between text-xs text-muted-foreground">
-            <span>Total Multiplier</span>
-            <span className="font-medium">{totalMultiplier}x</span>
-          </div>
-        </div>
+        )}
 
-        <Separator />
-
-        {/* Active Boosts */}
-        <div className="space-y-3">
-          <h4 className="text-sm font-medium">Active Boosts</h4>
+        {/* ------------------------------
+            Credits
+        ------------------------------- */}
+        {typeof credits === 'number' && (
           <div className="space-y-2">
-            {boosts.map((boost) => (
-              <div
-                key={boost.name}
-                className="flex items-center justify-between rounded-lg border p-2"
-              >
-                <div className="flex items-center gap-2">
-                  <Award className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">{boost.name}</span>
-                </div>
-                <Badge variant="secondary">{boost.multiplier}x</Badge>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <Separator />
-
-        {/* Network Share */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Network Share</span>
-            <span className="text-lg font-bold">{networkShare.toFixed(4)}%</span>
-          </div>
-          <Progress value={networkShare * 20} className="h-2" />
-          <p className="text-xs text-muted-foreground">
-            Your share of total network boosted credits
-          </p>
-        </div>
-
-        <Separator />
-
-        {/* Estimated Rewards */}
-        <div className="space-y-3">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            <h4 className="text-sm font-medium">Estimated Rewards</h4>
-          </div>
-          <div className="space-y-2">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Per Epoch (2 days)</span>
-              <span className="font-medium">{formatCurrency(estimatedRewards.perEpoch)}</span>
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Per Month</span>
-              <span className="font-medium">{formatCurrency(estimatedRewards.perMonth)}</span>
-            </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm text-muted-foreground">Per Year</span>
-              <span className="text-xl font-bold">{formatCurrency(estimatedRewards.perYear)}</span>
+              <span className="text-sm text-muted-foreground">
+                Base Credits
+              </span>
+              <span className="text-2xl font-semibold">
+                {formatNumber(credits)}
+              </span>
             </div>
-          </div>
-        </div>
 
-        {/* Disclaimer */}
+            {typeof boostedCredits === 'number' && (
+              <div className="flex items-center justify-between rounded-xl bg-primary/10 p-3">
+                <div className="flex items-center gap-2">
+                  <Zap className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">
+                    Boosted Credits
+                  </span>
+                </div>
+                <span className="text-xl font-semibold text-primary">
+                  {formatNumber(boostedCredits)}
+                </span>
+              </div>
+            )}
+
+            {totalMultiplier && (
+              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                <span>Total Multiplier</span>
+                <span className="font-medium">{totalMultiplier}x</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ------------------------------
+            Boosts
+        ------------------------------- */}
+        {boosts && boosts.length > 0 && (
+          <>
+            <Separator />
+
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium">
+                Active Boosts
+              </h4>
+
+              <div className="space-y-2">
+                {boosts.map((boost) => (
+                  <div
+                    key={boost.name}
+                    className="flex items-center justify-between rounded-lg border p-2"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Award className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">
+                        {boost.name}
+                      </span>
+                    </div>
+
+                    <Badge variant="secondary">
+                      {boost.multiplier}x
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ------------------------------
+            Disclaimer
+        ------------------------------- */}
         <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
           <p>
-            * Estimated rewards based on current network conditions and performance. Actual rewards
-            may vary.
+            Credits and boost data reflect protocol-level metrics.
+            Reward payouts and conversions will be displayed once
+            emission rules are finalized.
           </p>
         </div>
       </CardContent>

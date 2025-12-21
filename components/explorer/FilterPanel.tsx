@@ -87,7 +87,12 @@ export function FilterPanel({
         <SelectTrigger className="w-[190px]">
           <SelectValue placeholder="Sort" />
         </SelectTrigger>
-        <SelectContent>
+          <SelectContent
+            className="
+              bg-background
+              dark:bg-[#0F1535]
+            "
+          >
           <SelectItem value="health-desc">Health · High → Low</SelectItem>
           <SelectItem value="health-asc">Health · Low → High</SelectItem>
           <SelectItem value="storage-desc">Storage · High → Low</SelectItem>
@@ -156,7 +161,12 @@ export function FilterPanel({
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                  className="
+                    bg-background
+                    dark:bg-[#0F1535]
+                  "
+                >
                   <SelectItem value="all">All</SelectItem>
                   <SelectItem value="online">Online</SelectItem>
                   <SelectItem value="offline">Offline</SelectItem>
@@ -175,7 +185,12 @@ export function FilterPanel({
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent
+                    className="
+                      bg-background
+                      dark:bg-[#0F1535]
+                    "
+                  >
                     <SelectItem value="all">All</SelectItem>
                     {availableVersions.map((v) => (
                       <SelectItem key={v} value={v}>

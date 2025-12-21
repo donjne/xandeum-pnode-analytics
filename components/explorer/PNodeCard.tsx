@@ -58,7 +58,7 @@ export function PNodeCard({ node }: PNodeCardProps) {
             <StatusBadge status={isOnline ? 'online' : 'offline'} />
           </div>
 
-          <Link href={`/nodes/${node.pubkey}`}>
+          <Link href={`/explorer/${node.pubkey}`}>
             <Button
               variant="ghost"
               size="icon"

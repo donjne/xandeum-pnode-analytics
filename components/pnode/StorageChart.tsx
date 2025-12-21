@@ -1,6 +1,12 @@
 'use client';
 
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+
 import {
   ChartContainer,
   ChartTooltipContent,
@@ -12,76 +18,151 @@ import {
   StyledTooltip,
 } from '@/components/ui/chart';
 
-interface StorageChartProps {
-  data?: Array<{ timestamp: number; used: number; committed: number }>;
+import { cn, formatBytes } from '@/lib/utils';
+
+/* ---------------------------------------------
+   Types
+--------------------------------------------- */
+interface StoragePoint {
+  timestamp: number;
+  used: number;
+  committed: number;
 }
 
-// Mock data generator
-const generateMockData = () => {
-  const now = Date.now();
-  return Array.from({ length: 24 }, (_, i) => ({
-    timestamp: now - (23 - i) * 60 * 60 * 1000,
-    used: Math.floor(Math.random() * 50 * 1024 * 1024 * 1024) + 10 * 1024 * 1024 * 1024,
-    committed: 100 * 1024 * 1024 * 1024,
-  }));
-};
+interface StorageChartProps {
+  data?: StoragePoint[];
+}
 
-export function StorageChart({ data = generateMockData() }: StorageChartProps) {
+/* ---------------------------------------------
+   Component
+--------------------------------------------- */
+export function StorageChart({ data }: StorageChartProps) {
+  /* -------------------------------------------
+     Empty / no history yet
+  ------------------------------------------- */
+  if (!data || data.length === 0) {
+    return (
+      <Card
+        className={cn(
+          'rounded-2xl border border-transparent',
+          'bg-white shadow-[0_14px_40px_rgba(0,0,0,0.06)]',
+          'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl',
+          'dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]'
+        )}
+      >
+        <CardHeader>
+          <CardTitle className="text-base font-semibold">
+            Storage Utilization
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="flex h-[260px] items-center justify-center">
+          <p className="max-w-sm text-center text-sm text-muted-foreground">
+            Storage history will appear once periodic snapshots are available.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  /* -------------------------------------------
+     Transform data (bytes → GB)
+  ------------------------------------------- */
   const chartData = data.map((d) => ({
-    time: new Date(d.timestamp).toLocaleTimeString('en-US', {
+    time: new Date(d.timestamp).toLocaleTimeString(undefined, {
       hour: '2-digit',
       minute: '2-digit',
     }),
-    used: d.used / (1024 * 1024 * 1024), // Convert to GB
-    committed: d.committed / (1024 * 1024 * 1024),
+    used: d.used / 1024 ** 3,
+    committed: d.committed / 1024 ** 3,
   }));
 
+  const latest = data[data.length - 1];
+
+  /* -------------------------------------------
+     Render
+  ------------------------------------------- */
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Storage Utilization</CardTitle>
-        <CardDescription>24-hour storage usage history</CardDescription>
+    <Card
+      className={cn(
+        'rounded-2xl border border-transparent',
+        'bg-white shadow-[0_14px_40px_rgba(0,0,0,0.06)]',
+        'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl',
+        'dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]'
+      )}
+    >
+      <CardHeader className="pb-4">
+        <div className="space-y-1">
+          <CardTitle className="text-base font-semibold">
+            Storage Utilization
+          </CardTitle>
+          <p className="text-xs text-muted-foreground">
+            Used vs committed storage over time
+          </p>
+        </div>
       </CardHeader>
-      <CardContent>
-        <ChartContainer className="h-[300px]">
+
+      <CardContent className="space-y-6">
+        {/* Summary */}
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-muted-foreground">Current usage</span>
+          <span className="font-medium">
+            {formatBytes(latest.used)} / {formatBytes(latest.committed)}
+          </span>
+        </div>
+
+        {/* Chart */}
+        <ChartContainer className="h-[260px]">
           <StyledLineChart data={chartData}>
-            <StyledCartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+            <StyledCartesianGrid
+              strokeDasharray="3 3"
+              className="stroke-muted/30"
+            />
+
             <StyledXAxis
               dataKey="time"
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 11 }}
               tickLine={false}
               axisLine={false}
             />
+
             <StyledYAxis
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 11 }}
               tickLine={false}
               axisLine={false}
-              tickFormatter={(value) => `${value}GB`}
+              tickFormatter={(v) => `${v} GB`}
             />
+
             <StyledTooltip
               content={
                 <ChartTooltipContent
                   labelKey="time"
-                  formatter={(value) => `${Number(value).toFixed(2)} GB`}
+                  formatter={(value, name) =>
+                    `${Number(value).toFixed(1)} GB`
+                  }
                 />
               }
             />
+
+            {/* Capacity reference */}
             <StyledLine
               type="monotone"
               dataKey="committed"
-              stroke="hsl(var(--muted-foreground))"
-              strokeWidth={2}
-              strokeDasharray="5 5"
-              dot={false}
               name="Committed"
+              stroke="hsl(var(--muted-foreground))"
+              strokeOpacity={0.4}
+              strokeWidth={2}
+              dot={false}
             />
+
+            {/* Actual usage */}
             <StyledLine
               type="monotone"
               dataKey="used"
-              stroke="hsl(var(--primary))"
-              strokeWidth={2}
-              dot={false}
               name="Used"
+              stroke="hsl(var(--primary))"
+              strokeWidth={2.5}
+              dot={false}
             />
           </StyledLineChart>
         </ChartContainer>

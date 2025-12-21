@@ -68,7 +68,6 @@ export function AlertForm({ onDone }: { onDone: () => void }) {
           {error && (
             <p className="text-sm text-red-500">{error}</p>
           )}
-
           <Button
             type="submit"
             disabled={loading}
@@ -76,11 +75,21 @@ export function AlertForm({ onDone }: { onDone: () => void }) {
               h-11 px-6 rounded-xl
               font-medium
               bg-primary text-primary-foreground
-              shadow-sm
-              hover:shadow-md
-              active:scale-[0.98]
-              transition-all
-              disabled:opacity-60 disabled:cursor-not-allowed
+
+              /* REAL separation */
+              shadow-[0_8px_20px_rgba(0,0,0,0.18)]
+              ring-1 ring-black/5
+
+              hover:shadow-[0_12px_28px_rgba(0,0,0,0.22)]
+              hover:brightness-[1.03]
+
+              active:scale-[0.97]
+              active:shadow-[0_6px_16px_rgba(0,0,0,0.25)]
+
+              transition-all duration-200
+
+              disabled:opacity-60
+              disabled:cursor-not-allowed
             "
           >
             {loading ? 'Creating…' : 'Create Alert'}

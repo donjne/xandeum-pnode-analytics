@@ -1,122 +1,142 @@
 'use client';
 
-import { Network, Link as LinkIcon, ExternalLink } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Network } from 'lucide-react';
+
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { TruncatedText } from '@/components/shared/TruncatedText';
 import { StatusBadge } from '@/components/shared/StatusBadge';
-import { Button } from '@/components/ui/button';
+import { TruncatedText } from '@/components/shared/TruncatedText';
+import { cn } from '@/lib/utils';
 
-interface GossipPeer {
+/* ---------------------------------------------
+   Types
+--------------------------------------------- */
+export interface GossipPeer {
   pubkey: string;
-  address: string;
-  version: string;
+  address?: string;
+  version?: string;
   isOnline: boolean;
-  latency?: number;
 }
 
+/* ---------------------------------------------
+   Props
+--------------------------------------------- */
 interface GossipConnectionsProps {
   peers?: GossipPeer[];
 }
 
-// Mock data generator
-const generateMockPeers = (): GossipPeer[] => {
-  const mockPubkeys = [
-    '7qbRQPVBfxXjJpEa1rnz8JgmKBaUvCpVZPEqoKNh8uHr',
-    '2asTHq4vVGazKrmEa3YTXKuYiNZBdv1cQoLc1Tr2kvaw',
-    'HhuygLTeS6grue95pKKzak2UPuQMXepWbvQv2ToQfbZN',
-    '6vy4sYV6nTLJQ4tBcXUGgPTuGorVh2FJkm6ToVMFSfr2',
-    'CYQCxRcrSNg2XUiM42tp6bUtbWzZEdmTNawhBg5hSLoo',
-  ];
+/* ---------------------------------------------
+   Component
+--------------------------------------------- */
+export function GossipConnections({ peers }: GossipConnectionsProps) {
+  /* -------------------------------------------
+     No real data yet
+  ------------------------------------------- */
+  if (!peers || peers.length === 0) {
+    return (
+      <Card
+        className={cn(
+          'rounded-2xl border border-transparent',
+          'bg-white shadow-[0_14px_40px_rgba(0,0,0,0.06)]',
+          'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl',
+          'dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]'
+        )}
+      >
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+            <Network className="h-5 w-5" />
+            Gossip Connections
+          </CardTitle>
+        </CardHeader>
 
-  return mockPubkeys.map((pubkey, i) => ({
-    pubkey,
-    address: `${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}.${Math.floor(Math.random() * 255)}:9001`,
-    version: '0.7.0',
-    isOnline: Math.random() > 0.2,
-    latency: Math.floor(Math.random() * 100) + 10,
-  }));
-};
+        <CardContent className="flex h-[260px] items-center justify-center">
+          <p className="max-w-sm text-center text-sm text-muted-foreground">
+            Gossip peer information will appear once real-time peer discovery
+            data is available from the network.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-export function GossipConnections({ peers = generateMockPeers() }: GossipConnectionsProps) {
-  const onlinePeers = peers.filter((p) => p.isOnline);
-  const avgLatency =
-    onlinePeers.reduce((sum, p) => sum + (p.latency || 0), 0) / onlinePeers.length || 0;
+  /* -------------------------------------------
+     Derived stats
+  ------------------------------------------- */
+  const onlineCount = peers.filter((p) => p.isOnline).length;
 
+  /* -------------------------------------------
+     Render
+  ------------------------------------------- */
   return (
-    <Card>
-      <CardHeader>
+    <Card
+      className={cn(
+        'rounded-2xl border border-transparent',
+        'bg-white shadow-[0_14px_40px_rgba(0,0,0,0.06)]',
+        'dark:bg-[#0A0E27]/80 dark:backdrop-blur-xl',
+        'dark:shadow-[0_20px_60px_rgba(0,0,0,0.45)]'
+      )}
+    >
+      <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Network className="h-5 w-5" />
-              Gossip Connections
-            </CardTitle>
-            <CardDescription>Connected peers in the gossip network</CardDescription>
-          </div>
-          <Badge variant="outline" className="text-sm">
-            {onlinePeers.length}/{peers.length} Online
+          <CardTitle className="flex items-center gap-2 text-base font-semibold">
+            <Network className="h-5 w-5" />
+            Gossip Connections
+          </CardTitle>
+
+          <Badge variant="outline">
+            {onlineCount}/{peers.length} online
           </Badge>
         </div>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Stats */}
-        <div className="grid grid-cols-3 gap-4 rounded-lg border p-4">
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Total Peers</p>
-            <p className="text-2xl font-bold">{peers.length}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Active</p>
-            <p className="text-2xl font-bold text-green-500">{onlinePeers.length}</p>
-          </div>
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground">Avg Latency</p>
-            <p className="text-2xl font-bold">{avgLatency.toFixed(0)}ms</p>
-          </div>
-        </div>
 
+      <CardContent className="space-y-4">
         {/* Peer list */}
-        <ScrollArea className="h-[300px]">
+        <ScrollArea className="h-[300px] pr-2">
           <div className="space-y-2">
             {peers.map((peer) => (
               <div
                 key={peer.pubkey}
-                className="flex items-center justify-between rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                className="flex items-center justify-between rounded-xl border px-4 py-3 transition-colors hover:bg-muted/40"
               >
-                <div className="flex-1 space-y-1">
+                <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <StatusBadge status={peer.isOnline ? 'online' : 'offline'} showIcon={false} />
-                    <TruncatedText text={peer.pubkey} maxLength={6} showCopy={false} />
+                    <StatusBadge
+                      status={peer.isOnline ? 'online' : 'offline'}
+                      showIcon={false}
+                    />
+                    <TruncatedText
+                      text={peer.pubkey}
+                      maxLength={8}
+                      showCopy
+                    />
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                    <span className="font-mono">{peer.address}</span>
-                    <span>•</span>
-                    <span>v{peer.version}</span>
-                    {peer.latency && (
-                      <>
-                        <span>•</span>
-                        <span>{peer.latency}ms</span>
-                      </>
-                    )}
-                  </div>
+
+                  {(peer.address || peer.version) && (
+                    <div className="text-xs text-muted-foreground">
+                      {peer.address && (
+                        <span className="font-mono">{peer.address}</span>
+                      )}
+                      {peer.address && peer.version && <span> · </span>}
+                      {peer.version && <span>v{peer.version}</span>}
+                    </div>
+                  )}
                 </div>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <ExternalLink className="h-4 w-4" />
-                  <span className="sr-only">View peer</span>
-                </Button>
               </div>
             ))}
           </div>
         </ScrollArea>
 
-        {/* Info */}
-        <div className="rounded-lg bg-muted/50 p-3 text-xs text-muted-foreground">
-          <p>
-            Gossip protocol enables pNodes to discover peers, share status updates, and coordinate
-            data distribution across the network.
-          </p>
+        {/* Context */}
+        <div className="rounded-xl bg-muted/40 px-4 py-3 text-xs text-muted-foreground">
+          Gossip connections represent peer discovery relationships and do not
+          imply direct storage or reward relationships.
         </div>
       </CardContent>
     </Card>
