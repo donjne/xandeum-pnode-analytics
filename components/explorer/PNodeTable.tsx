@@ -38,18 +38,26 @@ interface PNodeTableProps {
 }
 
 export function PNodeTable({
-  nodes,
+  nodes = [],
   loading = false,
   onSort,
   sortField,
 }: PNodeTableProps) {
+  console.log('PNodeTable render - nodes:', nodes);
+  console.log('PNodeTable render - nodes type:', typeof nodes);
+  console.log('PNodeTable render - nodes is array:', Array.isArray(nodes));
+  console.log('PNodeTable render - nodes length:', nodes?.length);
+
   const now = Math.floor(Date.now() / 1000);
 
   if (loading) {
     return <LoadingSpinner text="Loading pNodes..." />;
   }
 
-  if (!nodes || nodes.length === 0) {
+  // Ensure nodes is always an array
+  const safeNodes = Array.isArray(nodes) ? nodes : [];
+
+  if (safeNodes.length === 0) {
     return (
       <EmptyState
         icon={Server}
@@ -116,8 +124,13 @@ export function PNodeTable({
         </TableHeader>
 
         <TableBody>
-          {nodes.map((node) => {
-            const isOnline = now - node.last_seen_timestamp < 120;
+          {safeNodes.map((node) => {
+            if (!node || !node.pubkey) {
+              console.warn('PNodeTable - Invalid node:', node);
+              return null;
+            }
+
+            const isOnline = now - (node.last_seen_timestamp || 0) < 120;
             const healthScore = calculateHealthScore(node);
             const healthCategory = getHealthCategory(healthScore);
 
@@ -134,7 +147,7 @@ export function PNodeTable({
                 </TableCell>
 
                 <TableCell className="font-mono">
-                  <TruncatedText text={node.pubkey} maxLength={6} showCopy />
+                  <TruncatedText text={node.pubkey || ''} maxLength={6} showCopy />
                 </TableCell>
 
                 <TableCell>
@@ -156,23 +169,23 @@ export function PNodeTable({
                 <TableCell>
                   <div className="space-y-0.5">
                     <div className="text-sm">
-                      {formatBytes(node.storage_used)} /{' '}
-                      {formatBytes(node.storage_committed)}
+                      {formatBytes(node.storage_used || 0)} /{' '}
+                      {formatBytes(node.storage_committed || 0)}
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      {formatPercentage(node.storage_usage_percent, 1)} used
+                      {formatPercentage(node.storage_usage_percent || 0, 1)} used
                     </div>
                   </div>
                 </TableCell>
 
-                <TableCell>{formatDuration(node.uptime)}</TableCell>
+                <TableCell>{formatDuration(node.uptime || 0)}</TableCell>
 
                 <TableCell>
-                  <Badge variant="outline">{node.version}</Badge>
+                  <Badge variant="outline">{node.version || 'N/A'}</Badge>
                 </TableCell>
 
                 <TableCell>
-                  <TimeAgo timestamp={node.last_seen_timestamp} />
+                  <TimeAgo timestamp={node.last_seen_timestamp || 0} />
                 </TableCell>
 
                 <TableCell>

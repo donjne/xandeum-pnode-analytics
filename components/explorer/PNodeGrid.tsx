@@ -17,16 +17,24 @@ interface PNodeGridProps {
 }
 
 export function PNodeGrid({
-  nodes,
+  nodes = [],
   loading = false,
   viewMode = 'grid',
   onViewModeChange,
 }: PNodeGridProps) {
+  console.log('PNodeGrid render - nodes:', nodes);
+  console.log('PNodeGrid render - nodes type:', typeof nodes);
+  console.log('PNodeGrid render - nodes is array:', Array.isArray(nodes));
+  console.log('PNodeGrid render - nodes length:', nodes?.length);
+
   if (loading) {
     return <LoadingSpinner text="Loading pNodes..." />;
   }
 
-  if (!nodes || nodes.length === 0) {
+  // Ensure nodes is always an array
+  const safeNodes = Array.isArray(nodes) ? nodes : [];
+
+  if (safeNodes.length === 0) {
     return (
       <EmptyState
         icon={Server}
@@ -89,9 +97,13 @@ export function PNodeGrid({
             : 'space-y-4'
         )}
       >
-        {nodes.map((node) => (
-          <PNodeCard key={node.pubkey} node={node} />
-        ))}
+        {safeNodes.map((node) => {
+          if (!node || !node.pubkey) {
+            console.warn('PNodeGrid - Invalid node:', node);
+            return null;
+          }
+          return <PNodeCard key={node.pubkey} node={node} />;
+        })}
       </div>
     </section>
   );

@@ -28,8 +28,16 @@ interface PNodeCardProps {
 }
 
 export function PNodeCard({ node }: PNodeCardProps) {
+  console.log('PNodeCard render - node:', node);
+
+  // Safety check
+  if (!node || !node.pubkey) {
+    console.error('PNodeCard - Invalid node:', node);
+    return null;
+  }
+
   const now = Math.floor(Date.now() / 1000);
-  const isOnline = now - node.last_seen_timestamp < 120;
+  const isOnline = now - (node.last_seen_timestamp || 0) < 120;
 
   const healthScore = calculateHealthScore(node);
   const healthCategory = getHealthCategory(healthScore);
@@ -72,7 +80,7 @@ export function PNodeCard({ node }: PNodeCardProps) {
         {/* Pubkey */}
         <div className="space-y-1">
           <TruncatedText
-            text={node.pubkey}
+            text={node.pubkey || ''}
             maxLength={10}
             className="font-mono text-sm"
           />
@@ -110,18 +118,18 @@ export function PNodeCard({ node }: PNodeCardProps) {
               <span className="text-muted-foreground">Storage</span>
             </div>
             <span className="font-medium">
-              {formatBytes(node.storage_used)} /{' '}
-              {formatBytes(node.storage_committed)}
+              {formatBytes(node.storage_used || 0)} /{' '}
+              {formatBytes(node.storage_committed || 0)}
             </span>
           </div>
 
           <Progress
-            value={node.storage_usage_percent}
+            value={node.storage_usage_percent || 0}
             className="h-2"
           />
 
           <div className="text-xs text-muted-foreground text-right">
-            {node.storage_usage_percent.toFixed(1)}% used
+            {(node.storage_usage_percent || 0).toFixed(1)}% used
           </div>
         </div>
 
@@ -132,7 +140,7 @@ export function PNodeCard({ node }: PNodeCardProps) {
             <span className="text-muted-foreground">Uptime</span>
           </div>
           <span className="font-medium">
-            {formatDuration(node.uptime)}
+            {formatDuration(node.uptime || 0)}
           </span>
         </div>
 
@@ -142,7 +150,7 @@ export function PNodeCard({ node }: PNodeCardProps) {
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Version</span>
             <Badge variant="outline" className="text-xs">
-              v{node.version}
+              v{node.version || 'N/A'}
             </Badge>
           </div>
 
@@ -150,7 +158,7 @@ export function PNodeCard({ node }: PNodeCardProps) {
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Last seen</span>
             <TimeAgo
-              timestamp={node.last_seen_timestamp}
+              timestamp={node.last_seen_timestamp || 0}
               showTooltip={false}
             />
           </div>
