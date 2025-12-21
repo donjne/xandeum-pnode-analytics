@@ -58,6 +58,11 @@ export function FilterPanel({
     return count;
   }, [filters]);
 
+  const safeVersions = Array.isArray(availableVersions)
+    ? availableVersions
+    : [];
+
+
   const resetFilters = () => {
     onChange({
       status: 'all',
@@ -175,7 +180,7 @@ export function FilterPanel({
             </div>
 
             {/* Version */}
-            {availableVersions.length > 0 && (
+            {safeVersions.length > 0 && (
               <div className="space-y-2">
                 <Label>Version</Label>
                 <Select
@@ -192,7 +197,7 @@ export function FilterPanel({
                     "
                   >
                     <SelectItem value="all">All</SelectItem>
-                    {availableVersions.map((v) => (
+                    {safeVersions.map((v) => (
                       <SelectItem key={v} value={v}>
                         v{v}
                       </SelectItem>

@@ -8,7 +8,7 @@ import { useNetworkReady } from '@/hooks/use-network-ready';
 import { useNetworkStore } from '@/stores/networkStore';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
-export default function ExplorerPage() {
+export default function ExplorerClient() {
   const { isLoading } = useNetworkReady();
   const { nodes } = useNetworkStore();
   const [search, setSearch] = React.useState('');
@@ -102,12 +102,15 @@ export default function ExplorerPage() {
     return result;
   }, [nodes, search, filters]);
 
-  // Pagination
-  const totalPages = Math.ceil(filteredNodes.length / pageSize);
-  const paginatedNodes = filteredNodes.slice(
-    (page - 1) * pageSize,
-    page * pageSize
-  );
+  // Pagination - with null safety
+  const totalPages = Math.max(1, Math.ceil((filteredNodes?.length || 0) / pageSize));
+  const paginatedNodes = React.useMemo(() => {
+    if (!filteredNodes || filteredNodes.length === 0) return [];
+    return filteredNodes.slice(
+      (page - 1) * pageSize,
+      page * pageSize
+    );
+  }, [filteredNodes, page, pageSize]);
 
   // Reset page when filters change
   React.useEffect(() => {
@@ -216,7 +219,7 @@ export default function ExplorerPage() {
           currentPage={page}
           totalPages={totalPages}
           pageSize={pageSize}
-          totalItems={filteredNodes.length}
+          totalItems={filteredNodes?.length || 0}
           onPageChange={setPage}
           onPageSizeChange={(size) => {
             setPageSize(size);
